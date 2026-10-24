@@ -87,6 +87,7 @@
 
   .plan { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
   .plan .nombre { font-weight: 600; font-size: 18px; }
+  .aviso-edad { display: grid; gap: 8px; justify-items: start; }
   .plan .precio { font-weight: 800; font-size: 26px; white-space: nowrap; }
 
   .pie-entrada { background: var(--tinta); color: var(--gris); padding: 28px 0; text-align: center; }
@@ -148,7 +149,7 @@
   <section class="hero" aria-labelledby="t-hero">
     <div class="envoltorio">
       <div class="caja">
-        <p class="para-quien">Para universitarios y jóvenes con poco presupuesto en Madrid <span class="revisar">[REVISAR]</span></p>
+        <p class="para-quien">Para universitarios y jóvenes con poco presupuesto en Madrid <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
         <h1 id="t-hero">Súmate a Plannazo y descubre nuestros descuentazos</h1>
         <p class="sub">Encuentra planes baratos, conoce gente y obtén descuentos. <strong>Dinos cuánto tienes y cuántos sois: nosotros te damos el plannazo.</strong></p>
         <div class="acciones">
@@ -167,17 +168,17 @@
         <article class="tarjeta">
           <div class="icono" aria-hidden="true">✨</div>
           <h3>Planes distintos</h3>
-          <p>Comida, bares, ocio nocturno y planes gratis en un solo sitio, filtrados por presupuesto y tipo. Sin saltar entre TikTok, Instagram y Google Maps. <span class="revisar">[REVISAR]</span></p>
+          <p>Comida, bares, ocio nocturno y planes gratis en un solo sitio, filtrados por presupuesto y tipo. Sin saltar entre TikTok, Instagram y Google Maps. <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
         </article>
         <article class="tarjeta">
           <div class="icono" aria-hidden="true">💸</div>
           <h3>Precios asequibles</h3>
-          <p>Planes baratos o gratis, y descuentos del club que mejoran cuanto más sales: nivel bronce, nivel plata. <span class="pendiente">[DATO PENDIENTE: % de descuento por nivel]</span> <span class="revisar">[REVISAR]</span></p>
+          <p>Planes baratos o gratis, y descuentos del club que mejoran cuanto más sales: nivel bronce, nivel plata. <span class="pendiente">[DATO PENDIENTE: % de descuento por nivel]</span> <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
         </article>
         <article class="tarjeta">
           <div class="icono" aria-hidden="true">👋</div>
           <h3>Gente nueva</h3>
-          <p>Ve quién va a cada plan, habla con esa gente antes de ir y únete a grupos afines. Llegas sabiendo con quién vas. <span class="revisar">[REVISAR]</span></p>
+          <p>Ve quién va a cada plan, habla con esa gente antes de ir y únete a grupos afines. Llegas sabiendo con quién vas. <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
         </article>
       </div>
     </div>
@@ -196,7 +197,14 @@
       <h2 id="t-populares">Planes populares</h2>
       <div class="rejilla dos">
         <article class="tarjeta plan"><span class="nombre">Brunch</span><span class="precio">10 €</span></article>
-        <article class="tarjeta plan"><span class="nombre">Tardeo en Nuevos Ministerios <span class="nota">(+18)</span></span><span class="precio">12 €</span></article>
+        <article class="tarjeta" id="plan-mayores">
+          <div class="aviso-edad">
+            <p><strong>Plan solo para mayores de 18</strong></p>
+            <p class="nota">Es un plan en un bar o una discoteca.</p>
+            <button class="boton pequeno secundario" type="button" id="confirmar-edad">Tengo 18 años o más</button>
+          </div>
+          <div class="plan" hidden><span class="nombre">Tardeo en Nuevos Ministerios <span class="nota">(+18)</span></span><span class="precio">12 €</span></div>
+        </article>
       </div>
     </div>
   </section>
@@ -224,10 +232,10 @@
   <!-- Comparación con lo que usan hoy (H2) -->
   <section aria-labelledby="t-comparacion">
     <div class="envoltorio">
-      <h2 id="t-comparacion">Ideas tienes de sobra. Te falta con quién. <span class="revisar">[REVISAR]</span></h2>
-      <p class="entradilla">Redes, peer to peer, preguntar a conocidos o mirar reseñas te dan ideas. Pero un plan solo pasa si hay alguien con quien ir. <span class="revisar">[REVISAR]</span></p>
+      <h2 id="t-comparacion">Ideas tienes de sobra. Te falta con quién. <span class="revisar" aria-hidden="true">[REVISAR]</span></h2>
+      <p class="entradilla">Redes, peer to peer, preguntar a conocidos o mirar reseñas te dan ideas. Pero un plan solo pasa si hay alguien con quien ir. <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
       <table class="comparativa">
-        <caption class="nota" style="caption-side: bottom; text-align: left; padding-top: 8px;">Comparativa de funciones. <span class="revisar">[REVISAR]</span></caption>
+        <caption class="nota" style="caption-side: bottom; text-align: left; padding-top: 8px;">Comparativa de funciones. <span class="revisar" aria-hidden="true">[REVISAR]</span></caption>
         <thead>
           <tr><th scope="col">Hoy buscas en…</th><th scope="col">¿Ves quién va?</th><th scope="col">¿Filtras por presupuesto?</th></tr>
         </thead>
@@ -259,7 +267,7 @@
       <h2 id="t-precio">¿Cuánto cuesta?</h2>
       <div class="precio-grande">
         <span class="cifra">Gratis</span>
-        <p>para estudiantes. Tu dinero, para el plan; no para la app. <span class="revisar">[REVISAR]</span></p>
+        <p>para estudiantes. Tu dinero, para el plan; no para la app. <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
       </div>
     </div>
   </section>
@@ -267,7 +275,7 @@
   <!-- Preguntas frecuentes -->
   <section aria-labelledby="t-faq">
     <div class="envoltorio">
-      <h2 id="t-faq">Preguntas frecuentes <span class="revisar">[REVISAR]</span></h2>
+      <h2 id="t-faq">Preguntas frecuentes <span class="revisar" aria-hidden="true">[REVISAR]</span></h2>
       <details>
         <summary>Acabo de llegar y no conozco a nadie. ¿Me sirve?</summary>
         <p>Para eso está. Ves quién se ha apuntado a cada plan, hablas con esa gente antes de ir y te unes a grupos afines.</p>
@@ -299,7 +307,7 @@
   <section aria-labelledby="t-espera">
     <div class="envoltorio">
       <h2 id="t-espera">Apúntate a la lista de espera</h2>
-      <p class="entradilla">Te avisamos cuando abramos Plannazo en tu campus. Solo necesitamos tu email. <span class="revisar">[REVISAR]</span></p>
+      <p class="entradilla">Te avisamos cuando abramos Plannazo en tu campus. Solo necesitamos tu email. <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
       <form class="espera tarjeta" id="form-espera" novalidate>
         <div class="campo">
           <label for="email">Tu email</label>
@@ -382,6 +390,15 @@
         encuesta.querySelector("fieldset").hidden = true;
         document.getElementById("gracias-h2").hidden = false;
       });
+    });
+
+    // Ocio responsable: el plan en un bar solo se muestra tras confirmar +18.
+    document.getElementById("confirmar-edad").addEventListener("click", function () {
+      medir("confirma_mayor_edad");
+      var tarjeta = document.getElementById("plan-mayores");
+      tarjeta.querySelector(".aviso-edad").hidden = true;
+      tarjeta.classList.add("plan");
+      tarjeta.querySelector(".plan").hidden = false;
     });
 
     // Lista de espera (registro): de momento solo muestra el mensaje de gracias.

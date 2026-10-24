@@ -1,6 +1,6 @@
 // Service worker mínimo: guarda la app para que abra sin conexión.
 // Cambia VERSION cada vez que publiquemos cambios en la app.
-const VERSION = "plannazo-v3";
+const VERSION = "plannazo-v4";
 const ARCHIVOS = [
   "./",
   "./index.html",
