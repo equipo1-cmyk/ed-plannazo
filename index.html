@@ -71,7 +71,8 @@
   .hero { padding: 28px 0 32px; }
   .hero .caja { background: var(--rojo); border: 2px solid var(--tinta); border-radius: var(--radio); padding: 24px 20px; }
   .hero h1 { font-weight: 800; font-size: clamp(30px, 8.5vw, 56px); line-height: 1.05; margin: 0 0 12px; letter-spacing: -.01em; }
-  .hero .sub { font-size: 18px; margin: 0 0 20px; max-width: 34em; }
+  .hero .sub { font-size: 17px; margin: 0 0 20px; max-width: 34em; }
+  .hero .para-quien { margin: 0 0 8px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
   .hero .acciones { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 
   .rejilla { display: grid; gap: 16px; grid-template-columns: 1fr; }
@@ -90,6 +91,7 @@
 
   .pie-entrada { background: var(--tinta); color: var(--gris); padding: 28px 0; text-align: center; }
   .pie-entrada p { margin: 0 0 14px; font-weight: 600; font-size: 20px; }
+  .pie-entrada :focus-visible { outline-color: var(--lima); }
 
   .opinion { margin: 0; }
   .opinion blockquote { margin: 0 0 6px; font-size: 18px; font-weight: 600; }
@@ -146,8 +148,9 @@
   <section class="hero" aria-labelledby="t-hero">
     <div class="envoltorio">
       <div class="caja">
+        <p class="para-quien">Para universitarios y jóvenes con poco presupuesto en Madrid <span class="revisar">[REVISAR]</span></p>
         <h1 id="t-hero">Súmate a Plannazo y descubre nuestros descuentazos</h1>
-        <p class="sub">Encuentra planes baratos, conoce gente y obtén descuentos.</p>
+        <p class="sub">Encuentra planes baratos, conoce gente y obtén descuentos. <strong>Dinos cuánto tienes y cuántos sois: nosotros te damos el plannazo.</strong></p>
         <div class="acciones">
           <a class="boton" href="app/" data-cta="probar_app_hero">Probar la app</a>
           <a class="boton secundario" href="#beneficios" data-cta="descubre_mas">Descubre más</a>
