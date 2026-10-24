@@ -117,6 +117,17 @@
   .cat[aria-pressed="true"] { background: var(--lima); outline: 3px solid var(--tinta); outline-offset: 0; }
   .foto { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; display: block; border-radius: 12px; border: 2px solid var(--tinta); }
   .detalle { font-size: 14px; }
+
+  /* Mapa */
+  #mapa-lienzo { height: 380px; border: 2px solid var(--tinta); border-radius: var(--radio); overflow: hidden; background: var(--tarjeta); z-index: 0; }
+  .leyenda { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
+  .leyenda li { display: flex; align-items: center; gap: 6px; }
+  .punto { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--tinta); display: inline-block; }
+  .lugar { display: flex; align-items: center; gap: 12px; }
+  .lugar .info { flex: 1; min-width: 0; }
+  .lugar .info strong { display: block; }
+  .leaflet-popup-content { font-family: "Poppins", system-ui, sans-serif; font-size: 14px; margin: 12px 14px; }
+  .leaflet-popup-content strong { display: block; font-size: 15px; }
   .acciones-plan { display: flex; flex-wrap: wrap; gap: 8px; }
   .reparto { background: var(--lima); border: 2px solid var(--tinta); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
   .reparto .cuota { font-size: 24px; font-weight: 800; }
@@ -134,11 +145,11 @@
   nav.pestanas {
     position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
     width: 100%; max-width: 430px; z-index: 4;
-    background: var(--tinta); display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    background: var(--tinta); display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px;
     padding: 8px 8px max(8px, env(safe-area-inset-bottom));
   }
   nav.pestanas button {
-    font-family: inherit; font-size: 12px; line-height: 1.2; font-weight: 600; color: var(--gris);
+    font-family: inherit; font-size: 11px; line-height: 1.2; font-weight: 600; color: var(--gris);
     background: transparent; border: 0; border-radius: 12px; padding: 8px 4px; min-height: 52px; cursor: pointer;
     display: grid; justify-items: center; gap: 2px;
   }
@@ -320,7 +331,37 @@
       </form>
     </section>
 
-    <!-- ============ Pantalla 4 — Mis Plannazos ============ -->
+    <!-- ============ Pantalla — Mapa ============ -->
+    <section class="pantalla" id="mapa" aria-labelledby="t-mapa" tabindex="-1" hidden>
+      <div class="hero">
+        <h2 id="t-mapa">Mapa de plannazos</h2>
+        <p>Todos los planes en Madrid. Toca un punto para ver el plan.</p>
+      </div>
+
+      <div>
+        <div id="mapa-lienzo" role="region" aria-label="Mapa de Madrid con los planes"></div>
+        <ul class="leyenda" aria-label="Leyenda">
+          <li><span class="punto" style="background:#FF5757"></span>Restaurantes</li>
+          <li><span class="punto" style="background:#CCFF8C"></span>Ocio y cultura</li>
+          <li><span class="punto" style="background:#FFD166"></span>Entretenimiento</li>
+          <li><span class="punto" style="background:#1A1A1A"></span>Discotecas (+18)</li>
+        </ul>
+        <p class="nota" id="mapa-error" role="alert" hidden>No se ha podido cargar el mapa. Comprueba tu conexión; la lista de abajo sigue funcionando.</p>
+      </div>
+
+      <div class="tarjeta aviso-edad" id="mapa-edad">
+        <p><strong>Hay planes en bares y discotecas que solo se muestran a mayores de 18.</strong></p>
+        <button class="boton pequeno secundario" type="button" data-confirmar-edad>Tengo 18 años o más</button>
+      </div>
+
+      <div>
+        <h3 id="t-lugares">Planes y dónde están</h3>
+        <ul class="lista" id="lista-lugares" aria-labelledby="t-lugares"></ul>
+        <p class="nota" style="margin-top:12px">Sin sitio fijo: Brunch y Montaditos a 1 € (100 Montaditos tiene varios locales en Madrid).</p>
+      </div>
+    </section>
+
+    <!-- ============ Pantalla — Mis Plannazos ============ -->
     <section class="pantalla" id="mis" aria-labelledby="t-mis" tabindex="-1" hidden>
       <div class="hero">
         <h2 id="t-mis">Mis Plannazos</h2>
@@ -341,6 +382,7 @@
     <button type="button" data-ir="feed" aria-current="page"><span class="ico" aria-hidden="true">🏠</span>Feed</button>
     <button type="button" data-ir="planes"><span class="ico" aria-hidden="true">🔎</span>Planes</button>
     <button type="button" data-ir="gente"><span class="ico" aria-hidden="true">👥</span>Gente</button>
+    <button type="button" data-ir="mapa"><span class="ico" aria-hidden="true">📍</span>Mapa</button>
     <button type="button" data-ir="mis"><span class="ico" aria-hidden="true">🎟️</span>Mis Plannazos</button>
   </nav>
 </div>
@@ -358,7 +400,7 @@
 
   // ---------- Navegación: una pantalla visible a la vez ----------
   var pantallaActual = "feed";
-  var pantallas = ["feed", "planes", "gente", "mis"];
+  var pantallas = ["feed", "planes", "gente", "mapa", "mis"];
   function ir(destino, enfocar) {
     if (pantallas.indexOf(destino) < 0 || destino === pantallaActual) return;
     medir("salida_pantalla", { destino: destino });
@@ -370,6 +412,7 @@
     window.scrollTo(0, 0);
     if (enfocar !== false) document.getElementById(destino).focus({ preventScroll: true });
     if (destino === "planes" && !inicioTarea) inicioTarea = Date.now();
+    if (destino === "mapa") abrirMapa();
     medir("vista_pantalla");
   }
   document.querySelectorAll("[data-ir]").forEach(function (b) {
@@ -468,8 +511,21 @@
     { id: "kapital", nombre: "Noche en Teatro Kapital", categoria: "discotecas", foto: "discoteca", precios: { 4: 21, 5: 27, 6: 29 }, desde: true, mayores: true, dias: [4, 5, 6],
       detalle: "Entrada con copas: jueves 21 €, viernes 27 € y sábado 29 €, más gastos de gestión. De 23:00 a 6:00." }
   ];
+  // Dónde está cada plan (coordenadas aproximadas). Brunch y montaditos no tienen un sitio fijo.
+  var UBICACIONES = {
+    sanmiguel: { lat: 40.4154, lng: -3.7090, lugar: "Plaza de San Miguel, s/n (Sol)" },
+    prado: { lat: 40.4138, lng: -3.6921, lugar: "Paseo del Prado, s/n" },
+    reina: { lat: 40.4086, lng: -3.6943, lugar: "Calle de Santa Isabel, 52 (Atocha)" },
+    matadero: { lat: 40.3917, lng: -3.6975, lugar: "Plaza de Legazpi, 8" },
+    debod: { lat: 40.4240, lng: -3.7178, lugar: "Calle de Ferraz, 1 (Parque del Oeste)" },
+    barcas: { lat: 40.4183, lng: -3.6835, lugar: "Estanque Grande del Retiro" },
+    cine: { lat: 40.4248, lng: -3.7134, lugar: "Calle de la Princesa, 3 (Plaza de España)" },
+    bolos: { lat: 40.4722, lng: -3.6822, lugar: "Estación de Chamartín" },
+    tardeo: { lat: 40.4462, lng: -3.6920, lugar: "Zona de Nuevos Ministerios" },
+    kapital: { lat: 40.4099, lng: -3.6934, lugar: "Calle de Atocha, 125" }
+  };
   var NOMBRES_CATEGORIA = { restaurantes: "Restaurantes", ocio: "Ocio y cultura", entretenimiento: "Entretenimiento", discotecas: "Discotecas" };
-  var DIAS = ["", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+  var DIAS =["", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
 
   var estado = { presupuesto: null, personas: null, dia: 6, categoria: null, mayorEdad: false };
 
@@ -507,6 +563,7 @@
       el.querySelector(".contenido-mayores").hidden = false;
     });
     if (document.getElementById("t-resultados").hidden === false) pintar();
+    pintarMapa();
   }
   var inicioTarea = null, primeraBusqueda = null, planCerrado = false;
 
@@ -654,6 +711,106 @@
   });
 
   medir("vista_pantalla");
+
+  // ---------- Mapa (Leaflet + OpenStreetMap) ----------
+  // Leaflet va dentro del proyecto (vendor/leaflet); solo los fondos del mapa vienen de OpenStreetMap.
+  var COLORES = { restaurantes: "#FF5757", ocio: "#CCFF8C", entretenimiento: "#FFD166", discotecas: "#1A1A1A" };
+  var mapa = null, capaPins = null, pins = {};
+
+  function textoPrecio(p) {
+    if (p.etiqueta) return p.etiqueta;
+    if (p.porGrupo) return "desde " + euros(p.porGrupo.laborable / p.porGrupo.plazas) + " (barca entre 4)";
+    var precios = p.precios ? Object.keys(p.precios).map(function (d) { return p.precios[d]; }) : [p.precio];
+    var minimo = Math.min.apply(null, precios);
+    if (!minimo) return "Gratis";
+    return (p.desde || precios.length > 1 ? "desde " : "") + euros(minimo);
+  }
+  function diasTexto(p) {
+    if (p.dias.length === 7) return "Todos los días";
+    return p.dias.map(function (d) { return DIAS[d]; }).join(", ").replace(/^./, function (c) { return c.toUpperCase(); });
+  }
+  function planesConSitio() {
+    return PLANES.filter(function (p) { return UBICACIONES[p.id] && (!p.mayores || estado.mayorEdad); });
+  }
+
+  function cargarLeaflet(listo) {
+    if (window.L) return listo();
+    var css = document.createElement("link");
+    css.rel = "stylesheet"; css.href = "vendor/leaflet/leaflet.min.css";
+    document.head.appendChild(css);
+    var js = document.createElement("script");
+    js.src = "vendor/leaflet/leaflet.min.js";
+    js.onload = listo;
+    js.onerror = function () { document.getElementById("mapa-error").hidden = false; };
+    document.head.appendChild(js);
+  }
+
+  function abrirMapa() {
+    pintarLugares();
+    cargarLeaflet(function () {
+      if (!mapa) {
+        mapa = L.map("mapa-lienzo", { scrollWheelZoom: false }).setView([40.425, -3.700], 12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).on("tileerror", function () { document.getElementById("mapa-error").hidden = false; }).addTo(mapa);
+        capaPins = L.layerGroup().addTo(mapa);
+      }
+      setTimeout(function () { mapa.invalidateSize(); pintarMapa(); }, 50);
+    });
+  }
+
+  function pintarMapa() {
+    document.getElementById("mapa-edad").hidden = estado.mayorEdad;
+    pintarLugares();
+    if (!mapa) return;
+    capaPins.clearLayers();
+    pins = {};
+    var puntos = [];
+    planesConSitio().forEach(function (p) {
+      var u = UBICACIONES[p.id];
+      var pin = L.circleMarker([u.lat, u.lng], {
+        radius: 10, color: p.categoria === "discotecas" ? "#CCFF8C" : "#1A1A1A", weight: 3,
+        fillColor: COLORES[p.categoria], fillOpacity: 1
+      });
+      var caja = document.createElement("div");
+      caja.innerHTML = "<strong></strong><span></span><br><small></small>";
+      caja.querySelector("strong").textContent = p.nombre;
+      caja.querySelector("span").textContent = textoPrecio(p) + " · " + NOMBRES_CATEGORIA[p.categoria] + (p.mayores ? " · +18" : "");
+      caja.querySelector("small").textContent = u.lugar;
+      pin.bindPopup(caja).on("click", function () { medir("mapa_pin", { plan: p.id }); });
+      pin.addTo(capaPins);
+      pins[p.id] = pin;
+      puntos.push([u.lat, u.lng]);
+    });
+    if (puntos.length) mapa.fitBounds(puntos, { padding: [24, 24] });
+  }
+
+  // Lista accesible con los mismos planes (sirve también sin mapa o con teclado)
+  function pintarLugares() {
+    var lista = document.getElementById("lista-lugares");
+    lista.innerHTML = "";
+    planesConSitio().forEach(function (p) {
+      var u = UBICACIONES[p.id];
+      var li = document.createElement("li");
+      li.className = "tarjeta lugar";
+      li.innerHTML = '<span class="punto" aria-hidden="true"></span><div class="info"><strong></strong><span class="nota"></span></div>' +
+        '<button class="boton pequeno secundario" type="button">Ver</button>';
+      li.querySelector(".punto").style.background = COLORES[p.categoria];
+      li.querySelector("strong").textContent = p.nombre;
+      li.querySelector(".nota").textContent = u.lugar + " · " + textoPrecio(p) + " · " + diasTexto(p);
+      var boton = li.querySelector("button");
+      boton.setAttribute("aria-label", "Ver " + p.nombre + " en el mapa");
+      boton.addEventListener("click", function () {
+        medir("mapa_lista", { plan: p.id });
+        if (!mapa || !pins[p.id]) return;
+        document.getElementById("mapa-lienzo").scrollIntoView({ behavior: "smooth", block: "center" });
+        mapa.setView([u.lat, u.lng], 15);
+        pins[p.id].openPopup();
+      });
+      lista.appendChild(li);
+    });
+  }
 
   // ---------- Service worker ----------
   if ("serviceWorker" in navigator) {
