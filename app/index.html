@@ -157,6 +157,20 @@
   nav.pestanas button[aria-current="page"] { background: var(--lima); color: var(--tinta); }
   nav.pestanas button:focus-visible { outline-color: var(--lima); }
 </style>
+<!-- Medidor del curso (Ruta ED): cuenta visitas, clics y registros. Sin cookies. No lo modifiques. -->
+<script>
+(function(){
+  var URL_MEDIDOR = "https://script.google.com/macros/s/AKfycbyPAD6pdiuWpwpiuSMKTE3Vze-vOokFalj1_R_TRq3Ydb8WS7nG2eUll4J2ky0XAlG3/exec", EQUIPO = "EQ1";
+  var q = new URLSearchParams(location.search);
+  window.medir = function(evento, extra){
+    if (q.get("prueba")) { console.log("Medidor (prueba, no cuenta):", evento, extra || ""); return; }
+    var b = { a: "ev", team: EQUIPO, ev: evento, v: window.VERSION_AB || "a", src: q.get("utm_source") || "directo", camp: q.get("utm_campaign") || "" };
+    for (var k in (extra || {})) b[k] = extra[k];
+    try { fetch(URL_MEDIDOR, { method: "POST", mode: "no-cors", keepalive: true, body: JSON.stringify(b) }); } catch (e) {}
+  };
+  document.addEventListener("DOMContentLoaded", function(){ medir("visita"); });
+})();
+</script>
 </head>
 <body>
 <div class="app">
@@ -389,13 +403,20 @@
 
 <script>
   // ---------- Medición ----------
-  // [DATO PENDIENTE] Conectar aquí el medidor del curso cuando nos lo deis.
+  // registrar() guarda el detalle solo en esta pestaña (window.plannazoEventos, para el test moderado).
+  // Los clics en CTA se envían al medidor del curso como medir("cta"); la visita la cuenta el propio medidor.
   var utm = {};
   new URLSearchParams(location.search).forEach(function (v, k) { if (k.indexOf("utm_") === 0) utm[k] = v; });
-  function medir(evento, datos) {
+  var EVENTOS_CTA = { cta_click: true, votar: true };
+  function registrar(evento, datos) {
     var registro = Object.assign({ evento: evento, pagina: "app", pantalla: pantallaActual, t: Date.now() }, utm, datos || {});
     (window.plannazoEventos = window.plannazoEventos || []).push(registro);
-    if (typeof window.medidorCurso === "function") window.medidorCurso(evento, registro);
+    if (EVENTOS_CTA[evento] && typeof window.medir === "function") {
+      var extra = { cta: (datos && datos.cta) || evento, pagina: "app", pantalla: pantallaActual };
+      if (datos && datos.plan) extra.plan = datos.plan;
+      if (datos && datos.segundos != null) extra.segundos = datos.segundos;
+      window.medir("cta", extra);
+    }
   }
 
   // ---------- Navegación: una pantalla visible a la vez ----------
@@ -403,7 +424,7 @@
   var pantallas = ["feed", "planes", "gente", "mapa", "mis"];
   function ir(destino, enfocar) {
     if (pantallas.indexOf(destino) < 0 || destino === pantallaActual) return;
-    medir("salida_pantalla", { destino: destino });
+    registrar("salida_pantalla", { destino: destino });
     pantallas.forEach(function (id) { document.getElementById(id).hidden = id !== destino; });
     document.querySelectorAll("nav.pestanas button").forEach(function (b) {
       if (b.dataset.ir === destino) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
@@ -413,18 +434,18 @@
     if (enfocar !== false) document.getElementById(destino).focus({ preventScroll: true });
     if (destino === "planes" && !inicioTarea) inicioTarea = Date.now();
     if (destino === "mapa") abrirMapa();
-    medir("vista_pantalla");
+    registrar("vista_pantalla");
   }
   document.querySelectorAll("[data-ir]").forEach(function (b) {
     b.addEventListener("click", function () { ir(b.dataset.ir); });
   });
   // Clics en CTA (H1 y brief)
   document.querySelectorAll("[data-cta]").forEach(function (b) {
-    b.addEventListener("click", function () { medir("cta_click", { cta: b.dataset.cta, plan: b.dataset.plan }); });
+    b.addEventListener("click", function () { registrar("cta_click", { cta: b.dataset.cta, plan: b.dataset.plan }); });
   });
   // Pantalla en la que abandonan
   document.addEventListener("visibilitychange", function () {
-    if (document.visibilityState === "hidden") medir("abandono", { cerrado: !planCerrado });
+    if (document.visibilityState === "hidden") registrar("abandono", { cerrado: !planCerrado });
   });
 
   document.querySelectorAll("[data-confirmar-edad]").forEach(function (b) { b.addEventListener("click", confirmarEdad); });
@@ -566,7 +587,7 @@
   }
   function confirmarEdad() {
     estado.mayorEdad = true;
-    medir("confirma_mayor_edad");
+    registrar("confirma_mayor_edad");
     document.querySelectorAll("[data-solo-mayores]").forEach(function (el) {
       el.querySelector(".aviso-edad").hidden = true;
       el.querySelector(".contenido-mayores").hidden = false;
@@ -630,7 +651,7 @@
     document.querySelectorAll(".reparto").forEach(function (r) { r.hidden = true; });
     boton.setAttribute("aria-pressed", "true");
     boton.textContent = "Tu voto ✓";
-    medir("votar", { plan: p.id, precio: p.precio });
+    registrar("votar", { plan: p.id, precio: p.precio });
 
     var personas = estado.personas || 1;
     var total = (p.precio || 0) * personas;
@@ -647,8 +668,8 @@
   function cerrar(p, personas, total) {
     planCerrado = true;
     var segundos = inicioTarea ? Math.round((Date.now() - inicioTarea) / 1000) : null;
-    medir("cta_click", { cta: "dividir_pago", plan: p.id });
-    medir("tarea_completada", { plan: p.id, personas: personas, total: total, segundos: segundos, metodo_primero: primeraBusqueda });
+    registrar("cta_click", { cta: "dividir_pago", plan: p.id, segundos: segundos });
+    registrar("tarea_completada", { plan: p.id, personas: personas, total: total, segundos: segundos, metodo_primero: primeraBusqueda });
     var caja = document.getElementById("plan-cerrado");
     document.getElementById("resumen-cerrado").textContent =
       p.nombre + ", " + nombreDia() + ". " + personas + (personas === 1 ? " persona" : " personas") +
@@ -689,7 +710,7 @@
     error.hidden = true;
     estado.presupuesto = pres; estado.personas = pers; estado.dia = parseInt(document.getElementById("dia").value, 10);
     if (!primeraBusqueda) primeraBusqueda = "presupuesto";
-    medir("buscar_presupuesto", { presupuesto: pres, personas: pers, dia: estado.dia });
+    registrar("buscar_presupuesto", { presupuesto: pres, personas: pers, dia: estado.dia });
     pintar();
     document.getElementById("resultados").scrollIntoView({ behavior: "smooth", block: "start" });
   });
@@ -702,7 +723,7 @@
       estado.categoria = activa ? null : b.dataset.categoria;
       if (!activa) b.setAttribute("aria-pressed", "true");
       if (!primeraBusqueda) primeraBusqueda = "categoria";
-      medir("buscar_categoria", { categoria: estado.categoria });
+      registrar("buscar_categoria", { categoria: estado.categoria });
       pintar();
     });
   });
@@ -714,12 +735,12 @@
     var error = document.getElementById("error-conectar"), ok = document.getElementById("ok-conectar");
     if (!marcados.length) { error.hidden = false; ok.hidden = true; return; }
     error.hidden = true;
-    medir("grupo_creado", { miembros: marcados.length });
+    registrar("grupo_creado", { miembros: marcados.length });
     ok.hidden = false;
     ok.innerHTML = "<strong>¡Grupo creado!</strong> Te avisaremos cuando acepten. (Simulado en el prototipo.)";
   });
 
-  medir("vista_pantalla");
+  registrar("vista_pantalla");
 
   // ---------- Mapa (Leaflet + OpenStreetMap) ----------
   // Leaflet va dentro del proyecto (vendor/leaflet); solo los fondos del mapa vienen de OpenStreetMap.
@@ -787,7 +808,7 @@
       caja.querySelector("strong").textContent = p.nombre;
       caja.querySelector("span").textContent = textoPrecio(p) + " · " + NOMBRES_CATEGORIA[p.categoria] + (p.mayores ? " · +18" : "");
       caja.querySelector("small").textContent = u.lugar;
-      pin.bindPopup(caja).on("click", function () { medir("mapa_pin", { plan: p.id }); });
+      pin.bindPopup(caja).on("click", function () { registrar("mapa_pin", { plan: p.id }); });
       pin.addTo(capaPins);
       pins[p.id] = pin;
       puntos.push([u.lat, u.lng]);
@@ -811,7 +832,7 @@
       var boton = li.querySelector("button");
       boton.setAttribute("aria-label", "Ver " + p.nombre + " en el mapa");
       boton.addEventListener("click", function () {
-        medir("mapa_lista", { plan: p.id });
+        registrar("mapa_lista", { plan: p.id });
         if (!mapa || !pins[p.id]) return;
         document.getElementById("mapa-lienzo").scrollIntoView({ behavior: "smooth", block: "center" });
         mapa.setView([u.lat, u.lng], 15);

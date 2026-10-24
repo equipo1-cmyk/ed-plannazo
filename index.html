@@ -123,6 +123,9 @@
   .campo label { font-weight: 600; }
   .campo input { font-family: inherit; font-size: 17px; padding: 10px 12px; min-height: 48px; border: 2px solid var(--tinta); border-radius: 12px; background: #fff; color: var(--tinta); width: 100%; }
   .gracias { font-weight: 600; font-size: 18px; margin: 0; }
+  .consentimiento { display: flex; gap: 10px; align-items: flex-start; }
+  .consentimiento input { width: 22px; height: 22px; margin: 2px 0 0; flex: none; accent-color: var(--tinta); }
+  .consentimiento label { font-size: 15px; cursor: pointer; }
 
   ol.pasos { margin: 8px 0 0; padding-left: 22px; }
   ol.pasos li { margin-bottom: 6px; }
@@ -133,6 +136,20 @@
   footer { border-top: 2px solid var(--tinta); padding: 24px 0 40px; font-size: 14px; color: var(--suave); }
   footer p { margin: 4px 0; }
 </style>
+<!-- Medidor del curso (Ruta ED): cuenta visitas, clics y registros. Sin cookies. No lo modifiques. -->
+<script>
+(function(){
+  var URL_MEDIDOR = "https://script.google.com/macros/s/AKfycbyPAD6pdiuWpwpiuSMKTE3Vze-vOokFalj1_R_TRq3Ydb8WS7nG2eUll4J2ky0XAlG3/exec", EQUIPO = "EQ1";
+  var q = new URLSearchParams(location.search);
+  window.medir = function(evento, extra){
+    if (q.get("prueba")) { console.log("Medidor (prueba, no cuenta):", evento, extra || ""); return; }
+    var b = { a: "ev", team: EQUIPO, ev: evento, v: window.VERSION_AB || "a", src: q.get("utm_source") || "directo", camp: q.get("utm_campaign") || "" };
+    for (var k in (extra || {})) b[k] = extra[k];
+    try { fetch(URL_MEDIDOR, { method: "POST", mode: "no-cors", keepalive: true, body: JSON.stringify(b) }); } catch (e) {}
+  };
+  document.addEventListener("DOMContentLoaded", function(){ medir("visita"); });
+})();
+</script>
 </head>
 <body>
 <a class="saltar" href="#contenido">Saltar al contenido</a>
@@ -316,9 +333,15 @@
           <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required aria-describedby="error-email">
         </div>
         <p class="nota" id="error-email" role="alert" hidden>Escribe un email válido.</p>
+        <div class="consentimiento">
+          <input id="consentimiento" name="consentimiento" type="checkbox" required aria-describedby="error-consentimiento">
+          <label for="consentimiento">Acepto que usen mi email para este experimento de clase.</label>
+        </div>
+        <p class="nota" id="error-consentimiento" role="alert" hidden>Marca la casilla para poder apuntarte.</p>
         <button class="boton" type="submit" data-cta="lista_espera">Apuntarme</button>
+        <p class="nota">Privacidad: tu email solo se usa para este experimento, solo lo ve el profesor y se borra al terminar el curso.</p>
       </form>
-      <p class="gracias" id="gracias-espera" role="status" tabindex="-1" hidden>¡Gracias! Ya estás en la lista. Te escribimos pronto. 🎉</p>
+      <p class="gracias" id="gracias-espera" role="status" tabindex="-1" hidden>¡Gracias! Esto es un prototipo de un proyecto de clase del Máster en Marketing Digital (CEU). Si sale adelante, te avisaremos.</p>
     </div>
   </section>
 
@@ -366,29 +389,34 @@
 </footer>
 
 <script>
-  // Medición: todos los eventos pasan por medir().
-  // [DATO PENDIENTE] Conectar aquí el medidor del curso (Sprint B).
+  // Medición: el medidor del curso (en <head>) define window.medir y cuenta la visita.
+  // registrar() guarda además el detalle en esta pestaña (window.plannazoEventos).
   (function () {
     var utm = {};
     new URLSearchParams(location.search).forEach(function (v, k) { if (k.indexOf("utm_") === 0) utm[k] = v; });
-    window.medir = function (evento, datos) {
+    function registrar(evento, datos) {
       var registro = Object.assign({ evento: evento, pagina: "landing", t: Date.now() }, utm, datos || {});
       (window.plannazoEventos = window.plannazoEventos || []).push(registro);
-      if (typeof window.medidorCurso === "function") window.medidorCurso(evento, registro);
-    };
-    medir("vista_landing");
+    }
+    function enviar(evento, extra) {
+      if (typeof window.medir === "function") window.medir(evento, extra);
+    }
 
-    // CTA (H1: interés). Los enlaces a la app conservan los UTM.
+    // CTA (H1: interés) → medir("cta"). Los enlaces a la app conservan los parámetros (UTM y ?prueba=1).
     document.querySelectorAll("[data-cta]").forEach(function (el) {
       if (el.tagName === "A" && location.search && el.getAttribute("href").indexOf("app/") === 0) el.href = el.getAttribute("href") + location.search;
-      el.addEventListener("click", function () { medir("cta_click", { cta: el.dataset.cta }); });
+      el.addEventListener("click", function () {
+        registrar("cta_click", { cta: el.dataset.cta });
+        enviar("cta", { cta: el.dataset.cta, pagina: "landing" });
+      });
     });
 
-    // Encuesta de un clic (H2: insatisfacción con lo que usan hoy).
+    // Encuesta de un clic (H2: insatisfacción con lo que usan hoy) → medir("cta") con la respuesta.
     var encuesta = document.getElementById("encuesta-h2");
     encuesta.querySelectorAll("[data-respuesta]").forEach(function (b) {
       b.addEventListener("click", function () {
-        medir("encuesta_h2", { respuesta: b.dataset.respuesta });
+        registrar("encuesta_h2", { respuesta: b.dataset.respuesta });
+        enviar("cta", { cta: "encuesta_h2", respuesta: b.dataset.respuesta, pagina: "landing" });
         encuesta.querySelector("fieldset").hidden = true;
         document.getElementById("gracias-h2").hidden = false;
       });
@@ -396,23 +424,30 @@
 
     // Ocio responsable: el plan en un bar solo se muestra tras confirmar +18.
     document.getElementById("confirmar-edad").addEventListener("click", function () {
-      medir("confirma_mayor_edad");
+      registrar("confirma_mayor_edad");
       var tarjeta = document.getElementById("plan-mayores");
       tarjeta.querySelector(".aviso-edad").hidden = true;
       tarjeta.classList.add("plan");
       tarjeta.querySelector(".plan").hidden = false;
     });
 
-    // Lista de espera (registro): de momento solo muestra el mensaje de gracias.
-    // Sprint B: enviar al medidor del curso. No se guarda el email en ningún sitio.
+    // Lista de espera (registro): email + consentimiento obligatorio → medir("registro", { email }).
     var form = document.getElementById("form-espera");
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var email = document.getElementById("email");
       var error = document.getElementById("error-email");
-      if (!email.checkValidity()) { error.hidden = false; email.setAttribute("aria-invalid", "true"); email.focus(); return; }
-      error.hidden = true;
-      medir("registro_lista_espera");
+      var casilla = document.getElementById("consentimiento");
+      var errorCasilla = document.getElementById("error-consentimiento");
+      var emailOk = email.value.trim() !== "" && email.checkValidity();
+      error.hidden = emailOk;
+      if (emailOk) email.removeAttribute("aria-invalid"); else email.setAttribute("aria-invalid", "true");
+      errorCasilla.hidden = casilla.checked;
+      if (casilla.checked) casilla.removeAttribute("aria-invalid"); else casilla.setAttribute("aria-invalid", "true");
+      if (!emailOk) { email.focus(); return; }
+      if (!casilla.checked) { casilla.focus(); return; }
+      registrar("registro");
+      enviar("registro", { email: email.value.trim() });
       form.hidden = true;
       var gracias = document.getElementById("gracias-espera");
       gracias.hidden = false;

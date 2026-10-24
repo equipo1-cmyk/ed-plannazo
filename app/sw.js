@@ -1,7 +1,7 @@
 // Service worker: «red primero».
 // Siempre descarga la última versión de la web; la copia guardada solo se usa sin conexión.
 // Cambia VERSION cuando cambie la lista de ARCHIVOS.
-const VERSION = "plannazo-v8";
+const VERSION = "plannazo-v9";
 const ARCHIVOS = [
   "./",
   "./index.html",
