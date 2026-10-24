@@ -408,9 +408,27 @@
   var utm = {};
   new URLSearchParams(location.search).forEach(function (v, k) { if (k.indexOf("utm_") === 0) utm[k] = v; });
   var EVENTOS_CTA = { cta_click: true, votar: true };
+  // Copia local para el panel de test (panel.html): se queda solo en este dispositivo.
+  var PRUEBA = new URLSearchParams(location.search).has("prueba");
+  var SESION = (function () {
+    try {
+      var s = sessionStorage.getItem("plannazo-sesion");
+      if (!s) { s = Date.now().toString(36) + Math.random().toString(36).slice(2, 6); sessionStorage.setItem("plannazo-sesion", s); }
+      return s;
+    } catch (e) { return "sin-sesion"; }
+  })();
+  function guardarLocal(registro) {
+    try {
+      var lista = JSON.parse(localStorage.getItem("plannazo-eventos") || "[]");
+      lista.push(registro);
+      if (lista.length > 3000) lista = lista.slice(-3000);
+      localStorage.setItem("plannazo-eventos", JSON.stringify(lista));
+    } catch (e) {}
+  }
   function registrar(evento, datos) {
-    var registro = Object.assign({ evento: evento, pagina: "app", pantalla: pantallaActual, t: Date.now() }, utm, datos || {});
+    var registro = Object.assign({ evento: evento, pagina: "app", pantalla: pantallaActual, t: Date.now(), sesion: SESION, prueba: PRUEBA }, utm, datos || {});
     (window.plannazoEventos = window.plannazoEventos || []).push(registro);
+    guardarLocal(registro);
     if (EVENTOS_CTA[evento] && typeof window.medir === "function") {
       var extra = { cta: (datos && datos.cta) || evento, pagina: "app", pantalla: pantallaActual };
       if (datos && datos.plan) extra.plan = datos.plan;
@@ -740,6 +758,7 @@
     ok.innerHTML = "<strong>¡Grupo creado!</strong> Te avisaremos cuando acepten. (Simulado en el prototipo.)";
   });
 
+  registrar("visita");
   registrar("vista_pantalla");
 
   // ---------- Mapa (Leaflet + OpenStreetMap) ----------

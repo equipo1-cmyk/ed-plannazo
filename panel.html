@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel de test · Plannazo</title>
+<meta name="description" content="Panel del equipo para seguir el test de usabilidad de Plannazo en este dispositivo.">
+<meta name="theme-color" content="#FF5757">
+<link rel="icon" href="app/icon-192.png" type="image/png">
+<style>
+  @font-face { font-family: "Poppins"; font-weight: 400; font-display: swap; src: url("fonts/poppins-400.woff2") format("woff2"); }
+  @font-face { font-family: "Poppins"; font-weight: 600; font-display: swap; src: url("fonts/poppins-600.woff2") format("woff2"); }
+  @font-face { font-family: "Poppins"; font-weight: 800; font-display: swap; src: url("fonts/poppins-800.woff2") format("woff2"); }
+
+  :root {
+    --gris: #DDD7D7;
+    --rojo: #FF5757;
+    --lima: #CCFF8C;
+    --tinta: #1A1A1A;
+    --suave: #4A4444;
+    --tarjeta: #F6F3F3;
+    --radio: 16px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--gris); color: var(--tinta); line-height: 1.45; font-size: 16px; }
+  :focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; border-radius: 6px; }
+  .envoltorio { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  header { border-bottom: 2px solid var(--tinta); padding: 12px 0; }
+  header .envoltorio { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  header img { height: 34px; width: auto; display: block; border-radius: 8px; }
+  h1 { font-size: clamp(26px, 6vw, 36px); font-weight: 800; line-height: 1.1; margin: 24px 0 6px; }
+  h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
+  p { margin: 0; }
+  .nota { font-size: 14px; color: var(--suave); }
+  .boton {
+    display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 16px;
+    background: var(--lima); color: var(--tinta); border: 2px solid var(--tinta); border-radius: 999px;
+    font-family: inherit; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; box-shadow: 2px 2px 0 var(--tinta);
+  }
+  .boton.secundario { background: var(--tarjeta); }
+  .acciones { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 16px; }
+  .acciones label { display: flex; gap: 8px; align-items: center; font-size: 14px; cursor: pointer; }
+  .acciones input { width: 20px; height: 20px; accent-color: var(--tinta); }
+
+  .rejilla { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 760px) { .rejilla { grid-template-columns: repeat(4, 1fr); } }
+  .kpi { background: var(--tarjeta); border: 2px solid var(--tinta); border-radius: var(--radio); padding: 14px; display: grid; gap: 4px; align-content: start; }
+  .kpi .etiqueta { font-size: 13px; font-weight: 600; color: var(--suave); }
+  .kpi .valor { font-size: 30px; font-weight: 800; line-height: 1.1; }
+  .kpi .objetivo { font-size: 12px; }
+  .estado { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1.5px solid var(--tinta); justify-self: start; }
+  .estado.ok { background: var(--lima); }
+  .estado.no { background: var(--rojo); }
+  .estado.sin { background: #fff; }
+
+  .tabla-env { overflow-x: auto; background: var(--tarjeta); border: 2px solid var(--tinta); border-radius: var(--radio); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #c9c2c2; white-space: nowrap; }
+  thead th { background: var(--tinta); color: var(--gris); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: 0; }
+  .barra { height: 10px; background: var(--rojo); border-radius: 999px; border: 1px solid var(--tinta); min-width: 2px; }
+
+  .chequeos { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .chequeos li { display: flex; gap: 10px; align-items: center; background: var(--tarjeta); border: 2px solid var(--tinta); border-radius: 12px; padding: 10px 12px; }
+  footer { margin: 40px 0; }
+</style>
+</head>
+<body>
+<header>
+  <div class="envoltorio">
+    <a href="./"><img src="app/img/logo.png" alt="Plannazo, ir a la web" width="186" height="34"></a>
+    <span class="nota">Panel interno del equipo · EQ1</span>
+  </div>
+</header>
+
+<main class="envoltorio">
+  <h1>Panel de test</h1>
+  <p class="nota">Muestra lo que ha pasado en la web y la app <strong>en este dispositivo</strong>: úsalo en el móvil o portátil del test moderado. Los datos de todos los visitantes llegan al medidor del curso, que tiene su propio panel.</p>
+
+  <div class="acciones">
+    <button class="boton" type="button" id="actualizar">Actualizar</button>
+    <button class="boton secundario" type="button" id="exportar">Descargar CSV</button>
+    <button class="boton secundario" type="button" id="borrar">Borrar datos de este dispositivo</button>
+    <label><input type="checkbox" id="con-pruebas"> Incluir visitas con ?prueba=1</label>
+  </div>
+  <p class="nota" id="actualizado" style="margin-top:8px" role="status"></p>
+
+  <h2>Estado de la web</h2>
+  <ul class="chequeos" id="chequeos">
+    <li><span class="estado sin">…</span>Comprobando…</li>
+  </ul>
+
+  <h2>Tarea del test: «15 € por cabeza, sois 4, plan para el sábado y repartid el pago»</h2>
+  <div class="rejilla" id="kpis-tarea"></div>
+
+  <h2>Hipótesis</h2>
+  <div class="rejilla" id="kpis-hipotesis"></div>
+
+  <h2>Tráfico y registros</h2>
+  <div class="rejilla" id="kpis-trafico"></div>
+
+  <h2>Clics en CTA</h2>
+  <div class="tabla-env">
+    <table>
+      <thead><tr><th scope="col">Botón</th><th scope="col">Página</th><th scope="col" class="num">Clics</th><th scope="col" style="width:40%">Peso</th></tr></thead>
+      <tbody id="tabla-cta"></tbody>
+    </table>
+  </div>
+
+  <h2>Dónde abandonan (sesiones de la app sin cerrar el plan)</h2>
+  <div class="tabla-env">
+    <table>
+      <thead><tr><th scope="col">Última pantalla</th><th scope="col" class="num">Sesiones</th></tr></thead>
+      <tbody id="tabla-abandono"></tbody>
+    </table>
+  </div>
+
+  <h2>Sesiones</h2>
+  <div class="tabla-env">
+    <table>
+      <thead><tr><th scope="col">Inicio</th><th scope="col">Origen</th><th scope="col" class="num">Eventos</th><th scope="col">Buscó primero por</th><th scope="col">Cerró el plan</th><th scope="col" class="num">Segundos</th><th scope="col">Registro</th></tr></thead>
+      <tbody id="tabla-sesiones"></tbody>
+    </table>
+  </div>
+
+  <footer class="nota">
+    <p>Los datos se leen del almacenamiento de este navegador (no salen del dispositivo y nunca incluyen emails). Para empezar una sesión de test limpia, pulsa «Borrar datos» y abre la web en una pestaña nueva.</p>
+  </footer>
+</main>
+
+<script>
+  (function () {
+    var CLAVE = "plannazo-eventos";
+    var OBJETIVO_SEGUNDOS = 120;
+    var NOMBRES_PANTALLA = { feed: "Feed", planes: "Planes", gente: "Conocer gente", mapa: "Mapa", mis: "Mis Plannazos" };
+
+    function leer() {
+      try { return JSON.parse(localStorage.getItem(CLAVE) || "[]"); } catch (e) { return []; }
+    }
+    function pct(a, b) { return b ? Math.round(a / b * 100) : null; }
+    function fmtPct(v) { return v == null ? "—" : v + " %"; }
+    function hora(t) { return new Date(t).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); }
+    function mediana(xs) {
+      if (!xs.length) return null;
+      var s = xs.slice().sort(function (a, b) { return a - b; }), m = Math.floor(s.length / 2);
+      return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
+    }
+    function celda(fila, texto, clase) {
+      var td = document.createElement("td");
+      td.textContent = texto;
+      if (clase) td.className = clase;
+      fila.appendChild(td);
+      return td;
+    }
+    function filaVacia(tbody, columnas, texto) {
+      var tr = document.createElement("tr");
+      var td = celda(tr, texto, "nota");
+      td.colSpan = columnas;
+      tbody.appendChild(tr);
+    }
+
+    // estado: "ok" cumple el objetivo, "no" no lo cumple, "sin" sin datos o sin objetivo
+    function kpi(contenedor, etiqueta, valor, objetivo, estado) {
+      var div = document.createElement("div");
+      div.className = "kpi";
+      div.innerHTML = '<span class="etiqueta"></span><span class="valor"></span><span class="objetivo nota"></span>';
+      div.querySelector(".etiqueta").textContent = etiqueta;
+      div.querySelector(".valor").textContent = valor;
+      div.querySelector(".objetivo").textContent = objetivo || "";
+      if (estado) {
+        var e = document.createElement("span");
+        e.className = "estado " + estado;
+        e.textContent = estado === "ok" ? "Se cumple" : estado === "no" ? "No se cumple" : "Sin datos";
+        div.appendChild(e);
+      }
+      contenedor.appendChild(div);
+    }
+    function estadoDe(valor, umbral) { return valor == null ? "sin" : valor >= umbral ? "ok" : "no"; }
+
+    function pintar() {
+      var conPruebas = document.getElementById("con-pruebas").checked;
+      var eventos = leer().filter(function (e) { return conPruebas || !e.prueba; });
+
+      // Agrupar por sesión
+      var sesiones = {};
+      eventos.forEach(function (e) {
+        var s = sesiones[e.sesion] || (sesiones[e.sesion] = { id: e.sesion, inicio: e.t, eventos: [], origen: e.utm_source || "directo" });
+        s.eventos.push(e);
+        if (e.t < s.inicio) s.inicio = e.t;
+      });
+      var lista = Object.keys(sesiones).map(function (k) { return sesiones[k]; }).sort(function (a, b) { return b.inicio - a.inicio; });
+      lista.forEach(function (s) {
+        s.eventos.sort(function (a, b) { return a.t - b.t; });
+        s.enApp = s.eventos.some(function (e) { return e.pagina === "app"; });
+        var tarea = s.eventos.filter(function (e) { return e.evento === "tarea_completada"; })[0];
+        s.cerrado = !!tarea;
+        s.segundos = tarea ? tarea.segundos : null;
+        var primera = s.eventos.filter(function (e) { return e.evento === "buscar_presupuesto" || e.evento === "buscar_categoria"; })[0];
+        s.metodo = primera ? (primera.evento === "buscar_presupuesto" ? "presupuesto" : "categoría") : null;
+        s.registro = s.eventos.some(function (e) { return e.evento === "registro"; });
+        s.grupo = s.eventos.some(function (e) { return e.evento === "grupo_creado"; });
+        var enApp = s.eventos.filter(function (e) { return e.pagina === "app" && e.pantalla; });
+        s.ultimaPantalla = enApp.length ? enApp[enApp.length - 1].pantalla : null;
+      });
+      var sesApp = lista.filter(function (s) { return s.enApp; });
+      var cerradas = sesApp.filter(function (s) { return s.cerrado; });
+      var tiempos = cerradas.map(function (s) { return s.segundos; }).filter(function (x) { return x != null; });
+      var rapidas = tiempos.filter(function (x) { return x < OBJETIVO_SEGUNDOS; }).length;
+
+      // Tarea
+      var cont = document.getElementById("kpis-tarea");
+      cont.innerHTML = "";
+      var exito = pct(cerradas.length, sesApp.length);
+      kpi(cont, "Sesiones en la app", String(sesApp.length), "Cada participante = una sesión");
+      kpi(cont, "Cierran el plan", cerradas.length + " de " + sesApp.length, "Objetivo: al menos 4 de 5 (80 %)", sesApp.length ? (exito >= 80 ? "ok" : "no") : "sin");
+      var med = mediana(tiempos);
+      kpi(cont, "Tiempo mediano", med == null ? "—" : med + " s", "Objetivo: menos de 120 s", med == null ? "sin" : med < OBJETIVO_SEGUNDOS ? "ok" : "no");
+      kpi(cont, "Cierran en menos de 2 min", fmtPct(pct(rapidas, tiempos.length)), rapidas + " de " + tiempos.length + " sesiones con tiempo");
+
+      // Hipótesis
+      cont = document.getElementById("kpis-hipotesis");
+      cont.innerHTML = "";
+      var conMetodo = lista.filter(function (s) { return s.metodo; });
+      var porPresupuesto = pct(conMetodo.filter(function (s) { return s.metodo === "presupuesto"; }).length, conMetodo.length);
+      kpi(cont, "Brief: buscan primero por presupuesto", fmtPct(porPresupuesto), conMetodo.length + " sesiones que buscaron · objetivo: mayoría (> 50 %)", porPresupuesto == null ? "sin" : porPresupuesto > 50 ? "ok" : "no");
+      var grupos = pct(sesApp.filter(function (s) { return s.grupo; }).length, sesApp.length);
+      kpi(cont, "H1: crean un grupo (Conectar)", fmtPct(grupos), "Objetivo: ≥ 50 % de las sesiones de la app", estadoDe(grupos, 50));
+      var respuestas = eventos.filter(function (e) { return e.evento === "encuesta_h2"; });
+      var noBasta = pct(respuestas.filter(function (e) { return e.respuesta === "no"; }).length, respuestas.length);
+      kpi(cont, "H2: lo que usan hoy no les basta", fmtPct(noBasta), respuestas.length + " respuestas · objetivo: ≥ 35 %", estadoDe(noBasta, 35));
+      var mayores = eventos.filter(function (e) { return e.evento === "confirma_mayor_edad"; }).length;
+      kpi(cont, "Confirman +18", String(mayores), "Para ver planes de bares y discotecas");
+
+      // Tráfico
+      cont = document.getElementById("kpis-trafico");
+      cont.innerHTML = "";
+      var visitasLanding = eventos.filter(function (e) { return e.evento === "visita" && e.pagina === "landing"; }).length;
+      var visitasApp = eventos.filter(function (e) { return e.evento === "visita" && e.pagina === "app"; }).length;
+      var registros = eventos.filter(function (e) { return e.evento === "registro"; }).length;
+      var clics = eventos.filter(function (e) { return e.evento === "cta_click" || e.evento === "votar"; });
+      kpi(cont, "Visitas a la web", String(visitasLanding));
+      kpi(cont, "Visitas a la app", String(visitasApp));
+      kpi(cont, "Clics en CTA", String(clics.length));
+      kpi(cont, "Registros en la lista de espera", String(registros), "Conversión: " + fmtPct(pct(registros, visitasLanding)) + " de las visitas a la web");
+
+      // Tabla de CTA
+      var porCta = {};
+      clics.forEach(function (e) {
+        var clave = (e.evento === "votar" ? "votar" : e.cta) + "|" + e.pagina;
+        porCta[clave] = (porCta[clave] || 0) + 1;
+      });
+      var filas = Object.keys(porCta).sort(function (a, b) { return porCta[b] - porCta[a]; });
+      var max = filas.length ? porCta[filas[0]] : 1;
+      var tbody = document.getElementById("tabla-cta");
+      tbody.innerHTML = "";
+      if (!filas.length) filaVacia(tbody, 4, "Todavía no hay clics.");
+      filas.forEach(function (k) {
+        var partes = k.split("|"), tr = document.createElement("tr");
+        celda(tr, partes[0].replace(/_/g, " "));
+        celda(tr, partes[1] === "app" ? "App" : "Web");
+        celda(tr, String(porCta[k]), "num");
+        var td = celda(tr, "");
+        var b = document.createElement("div");
+        b.className = "barra";
+        b.style.width = Math.max(2, porCta[k] / max * 100) + "%";
+        td.appendChild(b);
+        tbody.appendChild(tr);
+      });
+
+      // Abandono
+      var abandono = {};
+      sesApp.filter(function (s) { return !s.cerrado && s.ultimaPantalla; }).forEach(function (s) {
+        abandono[s.ultimaPantalla] = (abandono[s.ultimaPantalla] || 0) + 1;
+      });
+      tbody = document.getElementById("tabla-abandono");
+      tbody.innerHTML = "";
+      var claves = Object.keys(abandono).sort(function (a, b) { return abandono[b] - abandono[a]; });
+      if (!claves.length) filaVacia(tbody, 2, "Ninguna sesión ha abandonado sin cerrar el plan.");
+      claves.forEach(function (k) {
+        var tr = document.createElement("tr");
+        celda(tr, NOMBRES_PANTALLA[k] || k);
+        celda(tr, String(abandono[k]), "num");
+        tbody.appendChild(tr);
+      });
+
+      // Sesiones
+      tbody = document.getElementById("tabla-sesiones");
+      tbody.innerHTML = "";
+      if (!lista.length) filaVacia(tbody, 7, "Aún no hay sesiones en este dispositivo. Abre la web o la app para empezar.");
+      lista.slice(0, 100).forEach(function (s) {
+        var tr = document.createElement("tr");
+        celda(tr, hora(s.inicio));
+        celda(tr, s.origen);
+        celda(tr, String(s.eventos.length), "num");
+        celda(tr, s.metodo || "—");
+        celda(tr, s.enApp ? (s.cerrado ? "Sí" : "No") : "—");
+        celda(tr, s.segundos == null ? "—" : String(s.segundos), "num");
+        celda(tr, s.registro ? "Sí" : "No");
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("actualizado").textContent = "Actualizado a las " + new Date().toLocaleTimeString("es-ES") + " · " + eventos.length + " eventos.";
+    }
+
+    // Comprobaciones de la web publicada (mismo dominio, sin servicios externos)
+    function comprobar() {
+      var ul = document.getElementById("chequeos");
+      var pruebas = [
+        { nombre: "La web responde", url: "./", busca: "Medidor del curso" },
+        { nombre: "La app responde", url: "./app/", busca: "Medidor del curso" },
+        { nombre: "El service worker de la app está publicado", url: "./app/sw.js", busca: "red primero" },
+        { nombre: "El manifest de la app está publicado", url: "./app/manifest.webmanifest", busca: "Plannazo" }
+      ];
+      ul.innerHTML = "";
+      pruebas.forEach(function (p) {
+        var li = document.createElement("li");
+        li.innerHTML = '<span class="estado sin">…</span><span></span>';
+        li.lastChild.textContent = p.nombre;
+        ul.appendChild(li);
+        fetch(p.url, { cache: "no-store" }).then(function (r) {
+          return r.text().then(function (t) { return r.ok && t.indexOf(p.busca) >= 0; });
+        }).catch(function () { return false; }).then(function (ok) {
+          var e = li.firstChild;
+          e.className = "estado " + (ok ? "ok" : "no");
+          e.textContent = ok ? "OK" : "Falla";
+          if (ok && p.busca === "Medidor del curso") li.lastChild.textContent = p.nombre + " y lleva el medidor del curso";
+        });
+      });
+    }
+
+    function exportar() {
+      var eventos = leer();
+      var columnas = ["t", "fecha", "sesion", "pagina", "pantalla", "evento", "cta", "plan", "respuesta", "segundos", "metodo_primero", "prueba", "utm_source", "utm_campaign"];
+      var lineas = [columnas.join(",")].concat(eventos.map(function (e) {
+        return columnas.map(function (c) {
+          var v = c === "fecha" ? new Date(e.t).toISOString() : e[c];
+          v = v == null ? "" : String(v);
+          return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+        }).join(",");
+      }));
+      var blob = new Blob([lineas.join("\n")], { type: "text/csv;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "plannazo-test-" + new Date().toISOString().slice(0, 10) + ".csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    document.getElementById("actualizar").addEventListener("click", function () { pintar(); comprobar(); });
+    document.getElementById("con-pruebas").addEventListener("change", pintar);
+    document.getElementById("exportar").addEventListener("click", exportar);
+    document.getElementById("borrar").addEventListener("click", function () {
+      if (!confirm("¿Borrar todos los datos del test guardados en este dispositivo? No se puede deshacer.")) return;
+      try { localStorage.removeItem(CLAVE); } catch (e) {}
+      pintar();
+    });
+    window.addEventListener("storage", function (e) { if (e.key === CLAVE) pintar(); });
+
+    pintar();
+    comprobar();
+  })();
+</script>
+</body>
+</html>
