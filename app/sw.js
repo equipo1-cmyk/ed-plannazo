@@ -1,6 +1,7 @@
-// Service worker mínimo: guarda la app para que abra sin conexión.
-// Cambia VERSION cada vez que publiquemos cambios en la app.
-const VERSION = "plannazo-v4";
+// Service worker: «red primero».
+// Siempre descarga la última versión de la web; la copia guardada solo se usa sin conexión.
+// Cambia VERSION cuando cambie la lista de ARCHIVOS.
+const VERSION = "plannazo-v5";
 const ARCHIVOS = [
   "./",
   "./index.html",
@@ -12,28 +13,39 @@ const ARCHIVOS = [
   "../fonts/poppins-800.woff2"
 ];
 
+// La versión nueva se activa en cuanto se instala, sin esperar a cerrar la app.
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(ARCHIVOS)));
   self.skipWaiting();
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(ARCHIVOS)).catch(() => {}));
 });
 
+// Borra las copias antiguas y toma el control de las pestañas abiertas.
 self.addEventListener("activate", (e) => {
   e.waitUntil(
-    caches.keys().then((claves) => Promise.all(claves.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
+    caches.keys()
+      .then((claves) => Promise.all(claves.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Primero la red (para ver siempre lo último) y, si no hay conexión, la copia guardada.
+// Red primero: pide siempre al servidor (saltándose la caché HTTP del navegador),
+// guarda una copia y, si no hay conexión, sirve la copia guardada.
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET") return;
+  const peticion = e.request;
+  if (peticion.method !== "GET" || new URL(peticion.url).origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request)
-      .then((r) => {
-        const copia = r.clone();
-        caches.open(VERSION).then((c) => c.put(e.request, copia));
-        return r;
+    fetch(peticion, { cache: "no-store" })
+      .then((respuesta) => {
+        if (respuesta.ok) {
+          const copia = respuesta.clone();
+          caches.open(VERSION).then((c) => c.put(peticion, copia));
+        }
+        return respuesta;
       })
-      .catch(() => caches.match(e.request, { ignoreSearch: true }))
+      .catch(() =>
+        caches.match(peticion, { ignoreSearch: true }).then(
+          (guardada) => guardada || (peticion.mode === "navigate" ? caches.match("./index.html") : Response.error())
+        )
+      )
   );
 });

@@ -44,7 +44,9 @@
   .app { max-width: 430px; min-height: 100%; margin: 0 auto; background: var(--gris); display: flex; flex-direction: column; }
   header.barra { position: sticky; top: 0; z-index: 3; background: var(--gris); border-bottom: 2px solid var(--tinta); padding: 12px 16px; padding-top: max(12px, env(safe-area-inset-top)); }
   .marca { margin: 0; font-weight: 800; font-size: 22px; letter-spacing: .02em; }
-  .marca span { color: var(--rojo); }
+  .marca { color: var(--tinta); }
+  .marca .n { color: var(--lima); -webkit-text-stroke: 1.5px var(--tinta); paint-order: stroke fill; text-shadow: 2px 2px 0 var(--tinta); }
+  .solo-lector { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   main { flex: 1; padding: 0 16px 104px; }
   .pantalla { padding-top: 20px; }
   .pantalla > * + * { margin-top: 24px; }
@@ -54,7 +56,7 @@
   p { margin: 0; }
   .suave { color: var(--suave); }
   .nota { font-size: 13px; color: var(--suave); }
-  .pendiente { background: #fff3b0; padding: 0 4px; border-radius: 4px; font-size: 13px; }
+  .pendiente, .revisar { background: #fff3b0; padding: 0 4px; border-radius: 4px; font-size: 13px; }
 
   .hero { background: var(--rojo); border: 2px solid var(--tinta); border-radius: var(--radio); padding: 20px; }
   .hero h2 { font-size: 30px; }
@@ -122,11 +124,11 @@
   nav.pestanas {
     position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
     width: 100%; max-width: 430px; z-index: 4;
-    background: var(--tinta); display: grid; grid-template-columns: repeat(3, 1fr);
+    background: var(--tinta); display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
     padding: 8px 8px max(8px, env(safe-area-inset-bottom));
   }
   nav.pestanas button {
-    font-family: inherit; font-size: 13px; font-weight: 600; color: var(--gris);
+    font-family: inherit; font-size: 12px; line-height: 1.2; font-weight: 600; color: var(--gris);
     background: transparent; border: 0; border-radius: 12px; padding: 8px 4px; min-height: 52px; cursor: pointer;
     display: grid; justify-items: center; gap: 2px;
   }
@@ -138,7 +140,7 @@
 <body>
 <div class="app">
   <header class="barra">
-    <p class="marca" aria-label="Plannazo">PLANN<span>AZO</span></p>
+    <p class="marca"><span class="solo-lector">Plannazo</span><span aria-hidden="true">PLA<span class="n">NN</span>AZO</span></p>
   </header>
 
   <main id="contenido">
@@ -191,10 +193,13 @@
         <h3>Opiniones de nuestros PLANNERS</h3>
         <ul class="lista">
           <li class="tarjeta">
-            <figure class="opinion"><blockquote><span class="pendiente">[DATO PENDIENTE: testimonio real]</span></blockquote></figure>
+            <figure class="opinion"><blockquote>«He hecho amigos para toda la vida»</blockquote><figcaption class="nota">Opinión de ejemplo</figcaption></figure>
           </li>
           <li class="tarjeta">
-            <figure class="opinion"><blockquote><span class="pendiente">[DATO PENDIENTE: testimonio real]</span></blockquote></figure>
+            <figure class="opinion"><blockquote>«Salir sin dinero ya no es un problema»</blockquote><figcaption class="nota">Opinión de ejemplo</figcaption></figure>
+          </li>
+          <li class="tarjeta">
+            <figure class="opinion"><blockquote>«Llegué a Madrid sin conocer a nadie y el primer finde ya tenía plan»</blockquote><figcaption class="nota">Opinión de ejemplo</figcaption></figure>
           </li>
         </ul>
       </div>
@@ -252,9 +257,13 @@
         <h3>¡Plan cerrado!</h3>
         <p id="resumen-cerrado"></p>
         <p class="nota" style="margin-top:8px">En el prototipo no se cobra nada.</p>
+        <button class="boton pequeno secundario" type="button" data-ir="mis" style="margin-top:12px">Ver en Mis Plannazos</button>
       </div>
 
-      <footer class="nota"><span class="pendiente">[DATO PENDIENTE: texto del pie de PLANNAZOS]</span><br>Siempre hay planes sin alcohol; bares y discotecas, solo +18.</footer>
+      <footer class="nota">
+        <p><strong>Condiciones legales</strong> <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
+        <p>© 2026 Plannazo. Prototipo académico del LAB: no se hacen pagos reales ni se guardan tus datos personales. Los precios son orientativos y los fija cada local. Al usar Plannazo aceptas las condiciones de uso y la política de privacidad. Ocio responsable: siempre hay planes sin alcohol; los planes en bares y discotecas son solo para mayores de 18.</p>
+      </footer>
     </section>
 
     <!-- ============ Pantalla 3 — Conocer gente ============ -->
@@ -293,12 +302,29 @@
         <p id="ok-conectar" role="status" hidden></p>
       </form>
     </section>
+
+    <!-- ============ Pantalla 4 — Mis Plannazos ============ -->
+    <section class="pantalla" id="mis" aria-labelledby="t-mis" tabindex="-1" hidden>
+      <div class="hero">
+        <h2 id="t-mis">Mis Plannazos</h2>
+        <p>Los planes a los que te has apuntado.</p>
+      </div>
+
+      <ul class="lista" id="lista-mis" aria-labelledby="t-mis"></ul>
+
+      <div class="tarjeta" id="mis-vacio">
+        <h3>Aún no te has apuntado a ningún plan</h3>
+        <p class="suave" style="margin-bottom:16px">Dinos cuánto tienes y cuántos sois, y te damos el plannazo.</p>
+        <button class="boton" type="button" data-buscar data-cta="buscar_mi_plannazo_mis">Buscar mi plannazo</button>
+      </div>
+    </section>
   </main>
 
   <nav class="pestanas" aria-label="Pantallas">
     <button type="button" data-ir="feed" aria-current="page"><span class="ico" aria-hidden="true">🏠</span>Feed</button>
     <button type="button" data-ir="planes"><span class="ico" aria-hidden="true">🔎</span>Planes</button>
     <button type="button" data-ir="gente"><span class="ico" aria-hidden="true">👥</span>Gente</button>
+    <button type="button" data-ir="mis"><span class="ico" aria-hidden="true">🎟️</span>Mis Plannazos</button>
   </nav>
 </div>
 
@@ -315,7 +341,7 @@
 
   // ---------- Navegación: una pantalla visible a la vez ----------
   var pantallaActual = "feed";
-  var pantallas = ["feed", "planes", "gente"];
+  var pantallas = ["feed", "planes", "gente", "mis"];
   function ir(destino, enfocar) {
     if (pantallas.indexOf(destino) < 0 || destino === pantallaActual) return;
     medir("salida_pantalla", { destino: destino });
@@ -343,12 +369,45 @@
 
   document.querySelectorAll("[data-confirmar-edad]").forEach(function (b) { b.addEventListener("click", confirmarEdad); });
 
+  // ---------- Mis Plannazos: planes a los que te has apuntado ----------
+  // Solo en memoria: al recargar se vacía (así cada participante del test empieza de cero).
+  var misPlanes = [];
+  function apuntarme(plan) {
+    misPlanes = misPlanes.filter(function (m) { return m.id !== plan.id; });
+    misPlanes.unshift(plan);
+    pintarMis();
+  }
+  function pintarMis() {
+    var lista = document.getElementById("lista-mis");
+    lista.innerHTML = "";
+    document.getElementById("mis-vacio").hidden = misPlanes.length > 0;
+    misPlanes.forEach(function (m) {
+      var li = document.createElement("li");
+      li.className = "tarjeta plan";
+      li.innerHTML =
+        '<div class="fila"><span class="nombre"></span><span class="precio"></span></div>' +
+        '<p class="nota"></p>' +
+        '<div class="chips"><span class="chip sin-alcohol">Apuntado</span></div>';
+      li.querySelector(".nombre").textContent = m.nombre;
+      li.querySelector(".precio").textContent = m.precio;
+      li.querySelector(".nota").textContent = m.detalle;
+      lista.appendChild(li);
+    });
+  }
+
   // ---------- Feed: «Consigue tu entrada» (H1: intención de pago) ----------
   document.querySelectorAll('[data-cta="consigue_tu_entrada"]').forEach(function (b) {
     b.addEventListener("click", function () {
       b.textContent = "¡Entrada reservada!";
       b.setAttribute("aria-pressed", "true");
       document.getElementById("aviso-entrada").hidden = false;
+      var tarjeta = b.closest(".plan");
+      apuntarme({
+        id: b.dataset.plan,
+        nombre: tarjeta.querySelector(".nombre").textContent,
+        precio: tarjeta.querySelector(".precio").textContent,
+        detalle: "Entrada reservada desde Planes populares · por persona"
+      });
     });
   });
 
@@ -458,6 +517,13 @@
       (p.precio == null ? ". Precio [DATO PENDIENTE]." : total ? ", " + euros(total / personas) + " cada uno." : ", gratis.");
     caja.hidden = false;
     caja.focus();
+    apuntarme({
+      id: p.id,
+      nombre: p.nombre,
+      precio: p.precio == null ? "[DATO PENDIENTE]" : total ? euros(total / personas) : "Gratis",
+      detalle: nombreDia().replace("el ", "").replace(/^./, function (c) { return c.toUpperCase(); }) +
+        " · " + personas + (personas === 1 ? " persona" : " personas") + " · por persona"
+    });
   }
 
   // «Desliza para encontrar tu plan ideal»: lleva al buscador
@@ -468,9 +534,11 @@
   }
   document.getElementById("ir-buscador").addEventListener("click", irAlBuscador);
   // «Buscar mi plannazo» en el Feed: abre Planes directamente en el buscador
-  document.getElementById("buscar-desde-feed").addEventListener("click", function () {
-    ir("planes", false);
-    irAlBuscador();
+  document.querySelectorAll("#buscar-desde-feed, [data-buscar]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      ir("planes", false);
+      irAlBuscador();
+    });
   });
 
   // «Buscar mi plannazo»: búsqueda por presupuesto y personas (hipótesis del brief)
@@ -517,7 +585,10 @@
 
   // ---------- Service worker ----------
   if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js"); });
+    // updateViaCache "none": el navegador comprueba siempre si hay un sw.js nuevo.
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(function (reg) { reg.update(); }).catch(function () {});
+    });
   }
 </script>
 </body>
