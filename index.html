@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plannazo · Planes baratos y gente con quien ir</title>
+<meta name="description" content="Dinos cuánto tienes y cuántos sois: nosotros te damos el plannazo. Planes asequibles en Madrid, gente afín y descuentos.">
+<meta name="theme-color" content="#FF5757">
+<link rel="icon" href="app/icon-192.png" type="image/png">
+<style>
+  @font-face { font-family: "Poppins"; font-weight: 400; font-display: swap; src: url("fonts/poppins-400.woff2") format("woff2"); }
+  @font-face { font-family: "Poppins"; font-weight: 600; font-display: swap; src: url("fonts/poppins-600.woff2") format("woff2"); }
+  @font-face { font-family: "Poppins"; font-weight: 800; font-display: swap; src: url("fonts/poppins-800.woff2") format("woff2"); }
+
+  :root {
+    --gris: #DDD7D7;
+    --rojo: #FF5757;
+    --lima: #CCFF8C;
+    --tinta: #1A1A1A;
+    --suave: #4A4444;
+    --tarjeta: #F6F3F3;
+    --radio: 18px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--gris);
+    color: var(--tinta);
+    line-height: 1.5;
+    font-size: 16px;
+  }
+  a { color: var(--tinta); }
+  :focus-visible { outline: 3px solid var(--tinta); outline-offset: 3px; border-radius: 6px; }
+  .envoltorio { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  .saltar { position: absolute; left: -999px; top: 8px; background: var(--lima); padding: 8px 12px; border-radius: 10px; z-index: 10; }
+  .saltar:focus { left: 8px; }
+
+  /* Cabecera */
+  header.cabecera { position: sticky; top: 0; z-index: 5; background: var(--gris); border-bottom: 2px solid var(--tinta); }
+  .cabecera .envoltorio { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 64px; }
+  .marca { font-weight: 800; font-size: 22px; letter-spacing: .02em; text-decoration: none; }
+  .marca span { color: var(--rojo); -webkit-text-stroke: 0; }
+
+  /* Botones */
+  .boton {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 48px; padding: 12px 22px;
+    background: var(--lima); color: var(--tinta);
+    border: 2px solid var(--tinta); border-radius: 999px;
+    font: 600 16px/1.2 inherit; font-family: inherit; text-decoration: none; cursor: pointer;
+    box-shadow: 3px 3px 0 var(--tinta); transition: transform .1s, box-shadow .1s;
+  }
+  .boton:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--tinta); }
+  .boton:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--tinta); }
+  .boton.pequeno { min-height: 40px; padding: 8px 16px; font-size: 14px; }
+  .boton.secundario { background: var(--tarjeta); }
+
+  /* Hero */
+  .hero { padding: 40px 0 48px; }
+  .hero h1 { font-weight: 800; font-size: clamp(32px, 9vw, 60px); line-height: 1.05; margin: 0 0 16px; letter-spacing: -.01em; }
+  .hero h1 .resalta { background: var(--rojo); padding: 0 .15em; border-radius: 8px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .hero .pvu { font-size: 18px; color: var(--suave); margin: 0 0 24px; max-width: 34em; }
+  .hero .pvu strong { color: var(--tinta); }
+  .hero .acciones { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .nota { font-size: 14px; color: var(--suave); }
+
+  section { padding: 48px 0; }
+  section h2 { font-weight: 800; font-size: clamp(26px, 6.5vw, 40px); line-height: 1.1; margin: 0 0 8px; }
+  .entradilla { color: var(--suave); margin: 0 0 24px; max-width: 40em; }
+
+  .bloque-rojo { background: var(--rojo); border-top: 2px solid var(--tinta); border-bottom: 2px solid var(--tinta); }
+  .bloque-rojo .entradilla { color: var(--tinta); }
+  .insight { font-size: clamp(22px, 5.5vw, 32px); font-weight: 600; line-height: 1.25; margin: 0; max-width: 28em; }
+
+  .rejilla { display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 700px) { .rejilla.dos { grid-template-columns: 1fr 1fr; } .rejilla.tres { grid-template-columns: repeat(3, 1fr); } }
+
+  .tarjeta { background: var(--tarjeta); border: 2px solid var(--tinta); border-radius: var(--radio); padding: 20px; }
+  .tarjeta h3 { margin: 0 0 6px; font-size: 18px; font-weight: 600; }
+  .tarjeta p { margin: 0; }
+
+  .par { display: grid; gap: 0; padding: 0; overflow: hidden; }
+  .par > div { padding: 16px 20px; }
+  .par .dolor { background: var(--tarjeta); }
+  .par .alivio { background: var(--lima); border-top: 2px solid var(--tinta); }
+  .etiqueta { display: inline-block; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+
+  .comparativa { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--tarjeta); border: 2px solid var(--tinta); border-radius: var(--radio); overflow: hidden; font-size: 15px; }
+  .comparativa th, .comparativa td { text-align: left; padding: 12px 14px; vertical-align: top; border-bottom: 1px solid #c9c2c2; }
+  .comparativa tr:last-child th, .comparativa tr:last-child td { border-bottom: 0; }
+  .comparativa thead th { background: var(--tinta); color: var(--gris); font-weight: 600; }
+  .comparativa td.si { background: #e9ffcf; }
+
+  .encuesta { margin-top: 20px; }
+  .encuesta fieldset { border: 0; margin: 0; padding: 0; }
+  .encuesta legend { font-weight: 600; margin-bottom: 12px; padding: 0; }
+  .encuesta .opciones { display: flex; gap: 12px; flex-wrap: wrap; }
+  .gracias { font-weight: 600; margin: 12px 0 0; }
+
+  .precio { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; }
+  .precio .cifra { font-size: clamp(48px, 14vw, 80px); font-weight: 800; line-height: 1; }
+
+  ol.pasos { margin: 8px 0 0; padding-left: 22px; }
+  ol.pasos li { margin-bottom: 6px; }
+
+  .final { text-align: center; }
+  .final .acciones { justify-content: center; display: flex; }
+
+  footer { border-top: 2px solid var(--tinta); padding: 24px 0 40px; font-size: 14px; color: var(--suave); }
+  footer p { margin: 4px 0; }
+  .pendiente { background: #fff3b0; color: var(--tinta); padding: 0 4px; border-radius: 4px; font-size: .9em; }
+</style>
+</head>
+<body>
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<header class="cabecera">
+  <div class="envoltorio">
+    <a class="marca" href="#" aria-label="Plannazo, inicio">PLANN<span>AZO</span></a>
+    <a class="boton pequeno" href="app/" data-cta="probar_app_cabecera">Probar la app</a>
+  </div>
+</header>
+
+<main id="contenido">
+  <!-- Hero: mensaje clave + propuesta única de valor -->
+  <section class="hero">
+    <div class="envoltorio">
+      <h1>Dinos cuánto tienes y cuántos sois: <span class="resalta">nosotros te damos el plannazo.</span></h1>
+      <p class="pvu"><strong>Conecta con gente nueva. Descubre nuevos planes. Obtén descuentos.</strong> Para universitarios que acaban de llegar a Madrid y quieren salir sin gastar de más.</p>
+      <div class="acciones">
+        <a class="boton" href="app/" data-cta="probar_app_hero">Probar la app</a>
+        <span class="nota">Gratis para estudiantes</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Insight -->
+  <section class="bloque-rojo" aria-labelledby="t-problema">
+    <div class="envoltorio">
+      <h2 id="t-problema">Ideas tienes de sobra. Te falta con quién.</h2>
+      <p class="insight">Encuentras planes en TikTok, Instagram o Google Maps, pero un plan solo se hace realidad si hay alguien con quien ir. Cuanto más buscas solo, más te bloqueas.</p>
+    </div>
+  </section>
+
+  <!-- Dolores → aliviadores -->
+  <section aria-labelledby="t-dolores">
+    <div class="envoltorio">
+      <h2 id="t-dolores">Lo que te frena, y cómo lo arreglamos</h2>
+      <p class="entradilla">Te lo has contado a ti mismo más de un viernes.</p>
+      <div class="rejilla dos">
+        <article class="tarjeta par">
+          <div class="dolor"><span class="etiqueta">Te pasa</span><h3>No conoces a nadie con quien ir</h3></div>
+          <div class="alivio"><span class="etiqueta">Con Plannazo</span><p>Ves quién va a cada plan, hablas con esa gente antes y te unes a grupos afines.</p></div>
+        </article>
+        <article class="tarjeta par">
+          <div class="dolor"><span class="etiqueta">Te pasa</span><h3>El plan no se concreta y acabas en casa</h3></div>
+          <div class="alivio"><span class="etiqueta">Con Plannazo</span><p>Te avisamos por WhatsApp cuando se apunta gente afín o se abre un plan que encaja contigo.</p></div>
+        </article>
+        <article class="tarjeta par">
+          <div class="dolor"><span class="etiqueta">Te pasa</span><h3>Pierdes horas buscando y comparando</h3></div>
+          <div class="alivio"><span class="etiqueta">Con Plannazo</span><p>Un solo sitio con planes filtrados por presupuesto y tipo. Adiós a saltar entre TikTok, Instagram y Google Maps.</p></div>
+        </article>
+        <article class="tarjeta par">
+          <div class="dolor"><span class="etiqueta">Te pasa</span><h3>El presupuesto no da para mucho</h3></div>
+          <div class="alivio"><span class="etiqueta">Con Plannazo</span><p>Planes baratos o gratis, y descuentos que suben con tu nivel de club.</p></div>
+        </article>
+        <article class="tarjeta par">
+          <div class="dolor"><span class="etiqueta">Te pasa</span><h3>Sientes que desaprovechas los findes</h3></div>
+          <div class="alivio"><span class="etiqueta">Con Plannazo</span><p>Propuestas para sábado y domingo con gente que ya se ha apuntado.</p></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ganancias -->
+  <section aria-labelledby="t-ganas">
+    <div class="envoltorio">
+      <h2 id="t-ganas">Lo que ganas</h2>
+      <p class="entradilla">Menos scroll, más planes de verdad.</p>
+      <div class="rejilla dos">
+        <article class="tarjeta"><h3>Llegas sabiendo con quién vas</h3><p>Match por gustos y grupos por plan, para que conectar sea fácil.</p></article>
+        <article class="tarjeta"><h3>Solo opciones que te puedes permitir</h3><p>Filtra por presupuesto y tipo de plan. Sin comparar durante horas.</p></article>
+        <article class="tarjeta"><h3>Cuanto más sales, menos pagas</h3><p>El club tiene niveles bronce y plata: el descuento mejora con el uso. <span class="pendiente">[DATO PENDIENTE: % de descuento de cada nivel]</span></p></article>
+        <article class="tarjeta"><h3>Repite lo que funciona</h3><p>Guarda planes y vuelve con el mismo grupo: buena comida y una cerveza después de clase, o lo que os guste.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Alternativas + encuesta H2 -->
+  <section aria-labelledby="t-alternativas">
+    <div class="envoltorio">
+      <h2 id="t-alternativas">Lo que usas hoy, frente a Plannazo</h2>
+      <p class="entradilla">Redes, preguntar a conocidos o mirar reseñas te dan ideas. Pero no te dan compañía.</p>
+      <table class="comparativa">
+        <caption class="nota" style="caption-side: bottom; text-align: left; padding-top: 8px;">Comparativa de funciones, no de opiniones.</caption>
+        <thead>
+          <tr><th scope="col">Si buscas en…</th><th scope="col">Te da ideas</th><th scope="col">Te da con quién ir</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Redes sociales</th><td>Sí</td><td>No</td></tr>
+          <tr><th scope="row">Peer to peer</th><td>A veces</td><td>A veces</td></tr>
+          <tr><th scope="row">Preguntar a conocidos</th><td>Si tienes a quién</td><td>Si tienes a quién</td></tr>
+          <tr><th scope="row">Reseñas de Google Maps</th><td>Sí</td><td>No</td></tr>
+          <tr><th scope="row">Plannazo</th><td class="si">Sí, filtradas por presupuesto</td><td class="si">Sí, gente afín ya apuntada</td></tr>
+        </tbody>
+      </table>
+
+      <form class="encuesta tarjeta" id="encuesta-h2" aria-labelledby="leyenda-h2">
+        <fieldset>
+          <legend id="leyenda-h2">Pregunta rápida: ¿te funciona cómo buscas plan hoy?</legend>
+          <div class="opciones">
+            <button class="boton pequeno" type="button" data-respuesta="si">Sí, me funciona</button>
+            <button class="boton pequeno secundario" type="button" data-respuesta="no">No, no me basta</button>
+          </div>
+        </fieldset>
+        <p class="gracias" id="gracias-h2" role="status" hidden>¡Gracias! Nos ayuda un montón.</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Precio -->
+  <section class="bloque-rojo" aria-labelledby="t-precio">
+    <div class="envoltorio">
+      <h2 id="t-precio">¿Cuánto cuesta?</h2>
+      <div class="precio">
+        <span class="cifra">0 €</span>
+        <p class="insight">Gratis para estudiantes. Tu presupuesto es para el plan, no para la app.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Instalación -->
+  <section aria-labelledby="t-instalar">
+    <div class="envoltorio">
+      <h2 id="t-instalar">Cómo instalarla en el móvil</h2>
+      <p class="entradilla">No hace falta tienda de apps. Abre la app en el móvil y añádela a tu pantalla de inicio.</p>
+      <div class="rejilla dos">
+        <article class="tarjeta">
+          <h3>Android</h3>
+          <ol class="pasos">
+            <li>Abre la app en <strong>Chrome</strong>.</li>
+            <li>Toca el menú <strong>⋮</strong> (arriba a la derecha).</li>
+            <li>Elige <strong>Instalar aplicación</strong> o <strong>Añadir a pantalla de inicio</strong>.</li>
+          </ol>
+        </article>
+        <article class="tarjeta">
+          <h3>iPhone</h3>
+          <ol class="pasos">
+            <li>Abre la app en <strong>Safari</strong>.</li>
+            <li>Toca el botón <strong>Compartir</strong> (el cuadrado con la flecha).</li>
+            <li>Elige <strong>Añadir a pantalla de inicio</strong>.</li>
+          </ol>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA final -->
+  <section class="final" aria-labelledby="t-final">
+    <div class="envoltorio">
+      <h2 id="t-final">¿Este finde sales o qué?</h2>
+      <p class="entradilla" style="margin-left:auto;margin-right:auto;">Dinos cuánto tienes y cuántos sois.</p>
+      <div class="acciones"><a class="boton" href="app/" data-cta="probar_app_final">Probar la app</a></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="envoltorio">
+    <p><strong>PLANNAZO</strong> · Prototipo del LAB, sesión 2. Paula, Jairo, Evelyn y Jimena.</p>
+    <p>Ocio responsable: siempre hay planes sin alcohol. Los planes en bares y discotecas son solo para mayores de 18.</p>
+  </div>
+</footer>
+
+<script>
+  // Medición: todos los eventos pasan por medir().
+  // [DATO PENDIENTE] Conectar aquí el medidor del curso cuando nos lo deis.
+  (function () {
+    var utm = {};
+    new URLSearchParams(location.search).forEach(function (v, k) { if (k.indexOf("utm_") === 0) utm[k] = v; });
+    window.medir = function (evento, datos) {
+      var registro = Object.assign({ evento: evento, pagina: "landing", t: Date.now() }, utm, datos || {});
+      (window.plannazoEventos = window.plannazoEventos || []).push(registro);
+      if (typeof window.medidorCurso === "function") window.medidorCurso(evento, registro);
+    };
+    medir("vista_landing");
+
+    // CTA «Probar la app» (H1: interés). Mantiene los UTM al pasar a la app.
+    document.querySelectorAll("[data-cta]").forEach(function (a) {
+      if (location.search) a.href = a.getAttribute("href") + location.search;
+      a.addEventListener("click", function () { medir("cta_click", { cta: a.dataset.cta }); });
+    });
+
+    // Encuesta de un clic (H2: insatisfacción con lo que usan hoy).
+    var encuesta = document.getElementById("encuesta-h2");
+    encuesta.querySelectorAll("[data-respuesta]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        medir("encuesta_h2", { respuesta: b.dataset.respuesta });
+        encuesta.querySelector("fieldset").hidden = true;
+        document.getElementById("gracias-h2").hidden = false;
+      });
+    });
+  })();
+</script>
+</body>
+</html>

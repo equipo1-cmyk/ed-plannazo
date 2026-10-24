@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plannazo</title>
+<meta name="description" content="Encuentra planes baratos, conoce gente y obtén descuentos.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FF5757">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Plannazo">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  @font-face { font-family: "Poppins"; font-weight: 400; font-display: swap; src: url("../fonts/poppins-400.woff2") format("woff2"); }
+  @font-face { font-family: "Poppins"; font-weight: 600; font-display: swap; src: url("../fonts/poppins-600.woff2") format("woff2"); }
+  @font-face { font-family: "Poppins"; font-weight: 800; font-display: swap; src: url("../fonts/poppins-800.woff2") format("woff2"); }
+
+  :root {
+    --gris: #DDD7D7;
+    --rojo: #FF5757;
+    --lima: #CCFF8C;
+    --tinta: #1A1A1A;
+    --suave: #4A4444;
+    --tarjeta: #F6F3F3;
+    --radio: 16px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #b9b1b1;
+    color: var(--tinta);
+    line-height: 1.45;
+    font-size: 16px;
+  }
+  :focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; border-radius: 6px; }
+
+  /* Marco de 375 px a pantalla completa */
+  .app { max-width: 430px; min-height: 100%; margin: 0 auto; background: var(--gris); display: flex; flex-direction: column; }
+  header.barra { position: sticky; top: 0; z-index: 3; background: var(--gris); border-bottom: 2px solid var(--tinta); padding: 12px 16px; padding-top: max(12px, env(safe-area-inset-top)); }
+  .marca { margin: 0; font-weight: 800; font-size: 22px; letter-spacing: .02em; }
+  .marca span { color: var(--rojo); }
+  main { flex: 1; padding: 0 16px 104px; }
+  .pantalla { padding-top: 20px; }
+  .pantalla > * + * { margin-top: 24px; }
+
+  h2 { font-weight: 800; font-size: 28px; line-height: 1.1; margin: 0 0 8px; }
+  h3 { font-weight: 600; font-size: 20px; line-height: 1.2; margin: 0 0 12px; }
+  p { margin: 0; }
+  .suave { color: var(--suave); }
+  .nota { font-size: 13px; color: var(--suave); }
+  .pendiente { background: #fff3b0; padding: 0 4px; border-radius: 4px; font-size: 13px; }
+
+  .hero { background: var(--rojo); border: 2px solid var(--tinta); border-radius: var(--radio); padding: 20px; }
+  .hero h2 { font-size: 30px; }
+  .hero p { margin-bottom: 16px; }
+
+  .boton {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 48px; padding: 12px 20px; width: auto;
+    background: var(--lima); color: var(--tinta);
+    border: 2px solid var(--tinta); border-radius: 999px;
+    font-family: inherit; font-weight: 600; font-size: 16px; line-height: 1.2;
+    text-decoration: none; cursor: pointer; box-shadow: 3px 3px 0 var(--tinta);
+  }
+  .boton:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--tinta); }
+  .boton.ancho { width: 100%; }
+  .boton.pequeno { min-height: 40px; padding: 8px 14px; font-size: 14px; }
+  .boton.secundario { background: var(--tarjeta); }
+  .boton[aria-pressed="true"] { background: var(--tinta); color: var(--lima); }
+
+  .tarjeta { background: var(--tarjeta); border: 2px solid var(--tinta); border-radius: var(--radio); padding: 16px; }
+  .lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+
+  .beneficios li { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+  .beneficios .icono { flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--lima); border: 2px solid var(--tinta); display: grid; place-items: center; font-size: 20px; }
+
+  .plan { display: grid; gap: 8px; }
+  .plan .fila { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .plan .nombre { font-weight: 600; }
+  .plan .precio { font-weight: 800; font-size: 20px; white-space: nowrap; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1.5px solid var(--tinta); background: #fff; }
+  .chip.sin-alcohol { background: var(--lima); }
+  .chip.mayores { background: var(--rojo); }
+
+  .opinion { margin: 0; }
+  .opinion blockquote { margin: 0 0 6px; font-size: 18px; font-weight: 600; }
+
+  /* Buscador por presupuesto */
+  .campo { display: grid; gap: 6px; }
+  .campo label { font-weight: 600; font-size: 14px; }
+  .campo input, .campo select {
+    font-family: inherit; font-size: 18px; padding: 10px 12px; min-height: 48px;
+    border: 2px solid var(--tinta); border-radius: 12px; background: #fff; color: var(--tinta); width: 100%;
+  }
+  .formulario { display: grid; gap: 14px; }
+  .dos-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .categorias { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .categorias .boton { width: 100%; box-shadow: 2px 2px 0 var(--tinta); }
+  .acciones-plan { display: flex; flex-wrap: wrap; gap: 8px; }
+  .reparto { background: var(--lima); border: 2px solid var(--tinta); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
+  .reparto .cuota { font-size: 24px; font-weight: 800; }
+  .exito { background: var(--lima); text-align: center; }
+  .exito .grande { font-size: 40px; }
+
+  /* Personas */
+  .persona { display: flex; align-items: center; gap: 12px; }
+  .avatar { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--tinta); display: grid; place-items: center; font-weight: 800; background: var(--rojo); }
+  .persona input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--tinta); flex: none; }
+  .persona label { flex: 1; cursor: pointer; }
+  .persona .quien { font-weight: 600; display: block; }
+
+  /* Navegación inferior */
+  nav.pestanas {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 430px; z-index: 4;
+    background: var(--tinta); display: grid; grid-template-columns: repeat(3, 1fr);
+    padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+  }
+  nav.pestanas button {
+    font-family: inherit; font-size: 13px; font-weight: 600; color: var(--gris);
+    background: transparent; border: 0; border-radius: 12px; padding: 8px 4px; min-height: 52px; cursor: pointer;
+    display: grid; justify-items: center; gap: 2px;
+  }
+  nav.pestanas button .ico { font-size: 20px; line-height: 1; }
+  nav.pestanas button[aria-current="page"] { background: var(--lima); color: var(--tinta); }
+  nav.pestanas button:focus-visible { outline-color: var(--lima); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="barra">
+    <p class="marca" aria-label="Plannazo">PLANN<span>AZO</span></p>
+  </header>
+
+  <main id="contenido">
+    <!-- ============ Pantalla 1 — FEED ============ -->
+    <section class="pantalla" id="feed" aria-labelledby="t-feed" tabindex="-1">
+      <div class="hero">
+        <h2 id="t-feed">Súmate a Plannazo y descubre nuestros descuentazos</h2>
+        <p>Encuentra planes baratos, conoce gente y obtén descuentos.</p>
+        <button class="boton" type="button" data-ir="planes" data-cta="descubre_mas">Descubre más</button>
+      </div>
+
+      <div>
+        <h3>Benefíciate con nosotros</h3>
+        <ul class="lista beneficios">
+          <li><span class="icono" aria-hidden="true">✨</span>Planes distintos</li>
+          <li><span class="icono" aria-hidden="true">💸</span>Precios asequibles</li>
+          <li><span class="icono" aria-hidden="true">👋</span>Gente nueva</li>
+        </ul>
+      </div>
+
+      <button class="boton ancho" type="button" data-ir="planes" data-cta="unete_al_plan">Únete al plan</button>
+
+      <div>
+        <h3>Planes populares</h3>
+        <ul class="lista">
+          <li class="tarjeta plan">
+            <div class="fila"><span class="nombre">Brunch</span><span class="precio">10 €</span></div>
+            <p class="nota">Precio de ejemplo del prototipo.</p>
+            <button class="boton pequeno" type="button" data-cta="consigue_tu_entrada" data-plan="brunch">Consigue tu entrada</button>
+          </li>
+          <li class="tarjeta plan">
+            <div class="fila"><span class="nombre">Tardeo en Nuevos Ministerios</span><span class="precio">12 €</span></div>
+            <p class="nota">Precio de ejemplo del prototipo.</p>
+            <button class="boton pequeno" type="button" data-cta="consigue_tu_entrada" data-plan="tardeo">Consigue tu entrada</button>
+          </li>
+        </ul>
+        <p class="nota" id="aviso-entrada" role="status" hidden>¡Apuntado! En el prototipo no se cobra nada.</p>
+      </div>
+
+      <div>
+        <h3>Opiniones de nuestros PLANNERS</h3>
+        <ul class="lista">
+          <li class="tarjeta">
+            <figure class="opinion">
+              <blockquote>«He hecho amigos para toda la vida»</blockquote>
+              <figcaption class="nota">Texto de ejemplo del wireframe. <span class="pendiente">[DATO PENDIENTE: testimonio real]</span></figcaption>
+            </figure>
+          </li>
+          <li class="tarjeta">
+            <figure class="opinion">
+              <blockquote>«Salir sin dinero ya no es un problema»</blockquote>
+              <figcaption class="nota">Texto de ejemplo del wireframe. <span class="pendiente">[DATO PENDIENTE: testimonio real]</span></figcaption>
+            </figure>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ Pantalla 2 — PLANES ============ -->
+    <section class="pantalla" id="planes" aria-labelledby="t-planes" tabindex="-1" hidden>
+      <div class="hero">
+        <h2 id="t-planes">PLANNAZOS</h2>
+        <p>Dinos cuánto tienes y cuántos sois: nosotros te damos el plannazo.</p>
+        <button class="boton" type="button" id="ir-buscador" data-cta="desliza">Desliza para encontrar tu plan ideal</button>
+      </div>
+
+      <form class="tarjeta formulario" id="buscador" aria-labelledby="t-buscador" novalidate>
+        <h3 id="t-buscador">¿Cuánto tienes y cuántos sois?</h3>
+        <div class="dos-campos">
+          <div class="campo">
+            <label for="presupuesto">€ por persona</label>
+            <input id="presupuesto" name="presupuesto" type="number" inputmode="decimal" min="0" step="1" placeholder="15" required>
+          </div>
+          <div class="campo">
+            <label for="personas">Personas</label>
+            <input id="personas" name="personas" type="number" inputmode="numeric" min="1" max="20" step="1" placeholder="4" required>
+          </div>
+        </div>
+        <div class="campo">
+          <label for="dia">¿Qué día?</label>
+          <select id="dia" name="dia">
+            <option value="sabado">Sábado</option>
+            <option value="domingo">Domingo</option>
+          </select>
+        </div>
+        <p class="nota" id="error-buscador" role="alert" hidden>Pon cuánto tienes por persona y cuántos sois.</p>
+        <button class="boton ancho" type="submit" data-cta="buscar_mi_plannazo">Buscar mi plannazo</button>
+      </form>
+
+      <div>
+        <h3 id="t-categorias">¿Qué prefieres hoy?</h3>
+        <div class="categorias" role="group" aria-labelledby="t-categorias">
+          <button class="boton secundario" type="button" data-categoria="restaurantes" aria-pressed="false">Restaurantes</button>
+          <button class="boton secundario" type="button" data-categoria="ocio" aria-pressed="false">Ocio y cultura</button>
+          <button class="boton secundario" type="button" data-categoria="entretenimiento" aria-pressed="false">Entretenimiento</button>
+          <button class="boton secundario" type="button" data-categoria="discotecas" aria-pressed="false">Discotecas</button>
+        </div>
+      </div>
+
+      <div id="resultados" aria-live="polite">
+        <h3 id="t-resultados" hidden>Tus plannazos</h3>
+        <ul class="lista" id="lista-resultados" aria-labelledby="t-resultados"></ul>
+        <p class="nota" id="sin-resultados" hidden></p>
+      </div>
+
+      <div class="tarjeta exito" id="plan-cerrado" role="status" tabindex="-1" hidden>
+        <p class="grande" aria-hidden="true">🎉</p>
+        <h3>¡Plan cerrado!</h3>
+        <p id="resumen-cerrado"></p>
+        <p class="nota" style="margin-top:8px">En el prototipo no se cobra nada.</p>
+      </div>
+
+      <footer class="nota"><span class="pendiente">[DATO PENDIENTE: texto del pie de PLANNAZOS]</span><br>Planes de ejemplo para el prototipo. Siempre hay planes sin alcohol; bares y discotecas, solo +18.</footer>
+    </section>
+
+    <!-- ============ Pantalla 3 — Conocer gente ============ -->
+    <section class="pantalla" id="gente" aria-labelledby="t-gente" tabindex="-1" hidden>
+      <div class="hero">
+        <h2 id="t-gente">Conecta con nuevos PLANNERS</h2>
+      </div>
+
+      <div>
+        <h3>¿Qué es?</h3>
+        <p>Conoce a los PLANNERS más activos y con quién puedes encajar para hacer los PLANNAZOS más interesantes.</p>
+      </div>
+
+      <form class="tarjeta formulario" id="form-conectar" aria-labelledby="t-activos">
+        <h3 id="t-activos">Usuarios más activos</h3>
+        <p class="nota">Perfiles ficticios del prototipo. Marca con quién quieres conectar.</p>
+        <ul class="lista">
+          <li class="persona">
+            <span class="avatar" aria-hidden="true">L</span>
+            <label for="p-luis"><span class="quien">Luis. 23 años</span><span class="suave">Derecho y ADE</span></label>
+            <input type="checkbox" id="p-luis" name="planner" value="luis">
+          </li>
+          <li class="persona">
+            <span class="avatar" aria-hidden="true">C</span>
+            <label for="p-claudia"><span class="quien">Claudia. 19 años</span><span class="suave">Filosofía</span></label>
+            <input type="checkbox" id="p-claudia" name="planner" value="claudia">
+          </li>
+          <li class="persona">
+            <span class="avatar" aria-hidden="true">M</span>
+            <label for="p-marcos"><span class="quien">Marcos. 23 años</span><span class="suave">Ingeniería e influencer</span></label>
+            <input type="checkbox" id="p-marcos" name="planner" value="marcos">
+          </li>
+        </ul>
+        <p class="nota" id="error-conectar" role="alert" hidden>Marca al menos a una persona.</p>
+        <button class="boton ancho" type="submit" data-cta="conectar">Conectar</button>
+        <p id="ok-conectar" role="status" hidden></p>
+      </form>
+    </section>
+  </main>
+
+  <nav class="pestanas" aria-label="Pantallas">
+    <button type="button" data-ir="feed" aria-current="page"><span class="ico" aria-hidden="true">🏠</span>Feed</button>
+    <button type="button" data-ir="planes"><span class="ico" aria-hidden="true">🔎</span>Planes</button>
+    <button type="button" data-ir="gente"><span class="ico" aria-hidden="true">👥</span>Gente</button>
+  </nav>
+</div>
+
+<script>
+  // ---------- Medición ----------
+  // [DATO PENDIENTE] Conectar aquí el medidor del curso cuando nos lo deis.
+  var utm = {};
+  new URLSearchParams(location.search).forEach(function (v, k) { if (k.indexOf("utm_") === 0) utm[k] = v; });
+  function medir(evento, datos) {
+    var registro = Object.assign({ evento: evento, pagina: "app", pantalla: pantallaActual, t: Date.now() }, utm, datos || {});
+    (window.plannazoEventos = window.plannazoEventos || []).push(registro);
+    if (typeof window.medidorCurso === "function") window.medidorCurso(evento, registro);
+  }
+
+  // ---------- Navegación: una pantalla visible a la vez ----------
+  var pantallaActual = "feed";
+  var pantallas = ["feed", "planes", "gente"];
+  function ir(destino, enfocar) {
+    if (pantallas.indexOf(destino) < 0 || destino === pantallaActual) return;
+    medir("salida_pantalla", { destino: destino });
+    pantallas.forEach(function (id) { document.getElementById(id).hidden = id !== destino; });
+    document.querySelectorAll("nav.pestanas button").forEach(function (b) {
+      if (b.dataset.ir === destino) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    pantallaActual = destino;
+    window.scrollTo(0, 0);
+    if (enfocar !== false) document.getElementById(destino).focus({ preventScroll: true });
+    if (destino === "planes" && !inicioTarea) inicioTarea = Date.now();
+    medir("vista_pantalla");
+  }
+  document.querySelectorAll("[data-ir]").forEach(function (b) {
+    b.addEventListener("click", function () { ir(b.dataset.ir); });
+  });
+  // Clics en CTA (H1 y brief)
+  document.querySelectorAll("[data-cta]").forEach(function (b) {
+    b.addEventListener("click", function () { medir("cta_click", { cta: b.dataset.cta, plan: b.dataset.plan }); });
+  });
+  // Pantalla en la que abandonan
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") medir("abandono", { cerrado: !planCerrado });
+  });
+
+  // ---------- Feed: «Consigue tu entrada» (H1: intención de pago) ----------
+  document.querySelectorAll('[data-cta="consigue_tu_entrada"]').forEach(function (b) {
+    b.addEventListener("click", function () {
+      b.textContent = "¡Entrada reservada!";
+      b.setAttribute("aria-pressed", "true");
+      document.getElementById("aviso-entrada").hidden = false;
+    });
+  });
+
+  // ---------- Planes de ejemplo (sin backend) ----------
+  var PLANES = [
+    { id: "picnic", nombre: "Picnic en El Retiro", categoria: "ocio", precio: 0, sinAlcohol: true, apuntados: 6 },
+    { id: "museo", nombre: "Museo gratis a última hora", categoria: "ocio", precio: 0, sinAlcohol: true, apuntados: 4 },
+    { id: "brunch", nombre: "Brunch", categoria: "restaurantes", precio: 10, sinAlcohol: true, apuntados: 5 },
+    { id: "tardeo", nombre: "Tardeo en Nuevos Ministerios", categoria: "entretenimiento", precio: 12, mayores: true, apuntados: 8 },
+    { id: "bolos", nombre: "Bolos y patatas", categoria: "entretenimiento", precio: 14, sinAlcohol: true, apuntados: 3 },
+    { id: "ramen", nombre: "Ramen en Lavapiés", categoria: "restaurantes", precio: 15, sinAlcohol: true, apuntados: 4 },
+    { id: "disco", nombre: "Sesión en discoteca", categoria: "discotecas", precio: 15, mayores: true, apuntados: 9 },
+    { id: "karaoke", nombre: "Karaoke en grupo", categoria: "entretenimiento", precio: 18, apuntados: 5 }
+  ];
+  var NOMBRES_CATEGORIA = { restaurantes: "Restaurantes", ocio: "Ocio y cultura", entretenimiento: "Entretenimiento", discotecas: "Discotecas" };
+
+  var estado = { presupuesto: null, personas: null, dia: "sabado", categoria: null };
+  var inicioTarea = null, primeraBusqueda = null, planCerrado = false;
+
+  function euros(n) { return (Math.round(n * 100) / 100).toLocaleString("es-ES", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }) + " €"; }
+  function nombreDia() { return estado.dia === "domingo" ? "el domingo" : "el sábado"; }
+
+  function pintar() {
+    var lista = document.getElementById("lista-resultados");
+    var vacio = document.getElementById("sin-resultados");
+    lista.innerHTML = "";
+    var resultados = PLANES.filter(function (p) {
+      return (estado.presupuesto == null || p.precio <= estado.presupuesto) && (!estado.categoria || p.categoria === estado.categoria);
+    });
+    document.getElementById("t-resultados").hidden = false;
+    if (!resultados.length) {
+      vacio.hidden = false;
+      vacio.textContent = "Con ese presupuesto no hay planes de este tipo. Prueba otra categoría o los planes gratis.";
+      return;
+    }
+    vacio.hidden = true;
+    resultados.forEach(function (p) {
+      var li = document.createElement("li");
+      li.className = "tarjeta plan";
+      var chips = '<span class="chip">' + NOMBRES_CATEGORIA[p.categoria] + "</span>";
+      if (p.sinAlcohol) chips += '<span class="chip sin-alcohol">Sin alcohol</span>';
+      if (p.mayores) chips += '<span class="chip mayores">+18</span>';
+      chips += '<span class="chip">' + p.apuntados + " apuntados</span>";
+      li.innerHTML =
+        '<div class="fila"><span class="nombre">' + p.nombre + '</span><span class="precio">' + (p.precio ? euros(p.precio) : "Gratis") + "</span></div>" +
+        '<p class="nota">por persona · ' + nombreDia() + " · precio de ejemplo</p>" +
+        '<div class="chips">' + chips + "</div>" +
+        '<div class="acciones-plan">' +
+          '<button class="boton pequeno" type="button" data-accion="votar" aria-pressed="false">Votar este plan</button>' +
+        "</div>" +
+        '<div class="reparto" hidden></div>';
+      li.querySelector('[data-accion="votar"]').addEventListener("click", function (e) { votar(p, li, e.currentTarget); });
+      lista.appendChild(li);
+    });
+  }
+
+  function votar(p, li, boton) {
+    document.querySelectorAll('[data-accion="votar"]').forEach(function (b) {
+      b.setAttribute("aria-pressed", "false"); b.textContent = "Votar este plan";
+    });
+    document.querySelectorAll(".reparto").forEach(function (r) { r.hidden = true; });
+    boton.setAttribute("aria-pressed", "true");
+    boton.textContent = "Tu voto ✓";
+    medir("votar", { plan: p.id, precio: p.precio });
+
+    var personas = estado.personas || 1;
+    var total = p.precio * personas;
+    var reparto = li.querySelector(".reparto");
+    reparto.hidden = false;
+    reparto.innerHTML =
+      "<p><strong>Votos del grupo:</strong> 1 de " + personas + ". En el prototipo damos por hecho que el resto también vota.</p>" +
+      "<p>Total para " + personas + (personas === 1 ? " persona" : " personas") + ": <strong>" + (total ? euros(total) : "Gratis") + "</strong></p>" +
+      (total ? '<p>Cada uno paga <span class="cuota">' + euros(total / personas) + "</span></p>" : "") +
+      '<button class="boton ancho" type="button" data-cta="dividir_pago">' + (total ? "Dividir el pago y cerrar plan" : "Cerrar plan") + "</button>";
+    reparto.querySelector("button").addEventListener("click", function () { cerrar(p, personas, total); });
+  }
+
+  function cerrar(p, personas, total) {
+    planCerrado = true;
+    var segundos = inicioTarea ? Math.round((Date.now() - inicioTarea) / 1000) : null;
+    medir("cta_click", { cta: "dividir_pago", plan: p.id });
+    medir("tarea_completada", { plan: p.id, personas: personas, total: total, segundos: segundos, metodo_primero: primeraBusqueda });
+    var caja = document.getElementById("plan-cerrado");
+    document.getElementById("resumen-cerrado").textContent =
+      p.nombre + ", " + nombreDia() + ". " + personas + (personas === 1 ? " persona" : " personas") +
+      (total ? ", " + euros(total / personas) + " cada uno." : ", gratis.");
+    caja.hidden = false;
+    caja.focus();
+  }
+
+  // «Desliza para encontrar tu plan ideal»: lleva al buscador
+  document.getElementById("ir-buscador").addEventListener("click", function () {
+    var b = document.getElementById("buscador");
+    b.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("presupuesto").focus({ preventScroll: true });
+  });
+
+  // «Buscar mi plannazo»: búsqueda por presupuesto y personas (hipótesis del brief)
+  document.getElementById("buscador").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var pres = parseFloat(document.getElementById("presupuesto").value);
+    var pers = parseInt(document.getElementById("personas").value, 10);
+    var error = document.getElementById("error-buscador");
+    if (isNaN(pres) || pres < 0 || isNaN(pers) || pers < 1) { error.hidden = false; return; }
+    error.hidden = true;
+    estado.presupuesto = pres; estado.personas = pers; estado.dia = document.getElementById("dia").value;
+    if (!primeraBusqueda) primeraBusqueda = "presupuesto";
+    medir("buscar_presupuesto", { presupuesto: pres, personas: pers, dia: estado.dia });
+    pintar();
+    document.getElementById("resultados").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  // «¿Qué prefieres hoy?»: búsqueda por tipo de local
+  document.querySelectorAll("[data-categoria]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var activa = b.getAttribute("aria-pressed") === "true";
+      document.querySelectorAll("[data-categoria]").forEach(function (o) { o.setAttribute("aria-pressed", "false"); });
+      estado.categoria = activa ? null : b.dataset.categoria;
+      if (!activa) b.setAttribute("aria-pressed", "true");
+      if (!primeraBusqueda) primeraBusqueda = "categoria";
+      medir("buscar_categoria", { categoria: estado.categoria });
+      pintar();
+    });
+  });
+
+  // ---------- Conocer gente: «Conectar» (H1: grupos hechos) ----------
+  document.getElementById("form-conectar").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var marcados = Array.prototype.map.call(this.querySelectorAll("input:checked"), function (i) { return i.value; });
+    var error = document.getElementById("error-conectar"), ok = document.getElementById("ok-conectar");
+    if (!marcados.length) { error.hidden = false; ok.hidden = true; return; }
+    error.hidden = true;
+    medir("grupo_creado", { miembros: marcados.length });
+    ok.hidden = false;
+    ok.innerHTML = "<strong>¡Grupo creado!</strong> Te avisaremos cuando acepten. (Simulado en el prototipo.)";
+  });
+
+  medir("vista_pantalla");
+
+  // ---------- Service worker ----------
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js"); });
+  }
+</script>
+</body>
+</html>
