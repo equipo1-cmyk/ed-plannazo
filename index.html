@@ -44,7 +44,8 @@
   header.cabecera { position: sticky; top: 0; z-index: 5; background: var(--gris); border-bottom: 2px solid var(--tinta); }
   .cabecera .envoltorio { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; }
   .marca { font-weight: 800; font-size: 22px; letter-spacing: .02em; text-decoration: none; }
-  .marca span { color: var(--rojo); }
+  .marca { line-height: 0; }
+  .marca img { display: block; height: 34px; width: auto; border-radius: 8px; }
 
   /* Botones */
   .boton {
@@ -139,7 +140,7 @@
 <!-- 1. Cabecera / menú -->
 <header class="cabecera">
   <div class="envoltorio">
-    <a class="marca" href="#" aria-label="Plannazo, inicio">PLANN<span>AZO</span></a>
+    <a class="marca" href="#"><img src="app/img/logo.png" alt="Plannazo, inicio" width="186" height="34"></a>
     <a class="boton pequeno" href="app/" data-cta="probar_app_cabecera">Probar la app</a>
   </div>
 </header>
@@ -149,7 +150,7 @@
   <section class="hero" aria-labelledby="t-hero">
     <div class="envoltorio">
       <div class="caja">
-        <p class="para-quien">Para universitarios y jóvenes con poco presupuesto en Madrid <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
+        <p class="para-quien">Para universitarios y jóvenes con poco presupuesto en Madrid</p>
         <h1 id="t-hero">Súmate a Plannazo y descubre nuestros descuentazos</h1>
         <p class="sub">Encuentra planes baratos, conoce gente y obtén descuentos. <strong>Dinos cuánto tienes y cuántos sois: nosotros te damos el plannazo.</strong></p>
         <div class="acciones">
@@ -168,17 +169,17 @@
         <article class="tarjeta">
           <div class="icono" aria-hidden="true">✨</div>
           <h3>Planes distintos</h3>
-          <p>Comida, bares, ocio nocturno y planes gratis en un solo sitio, filtrados por presupuesto y tipo. Sin saltar entre TikTok, Instagram y Google Maps. <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
+          <p>Comida, bares, ocio nocturno y planes gratis en un solo sitio, filtrados por presupuesto y tipo. Sin saltar entre TikTok, Instagram y Google Maps.</p>
         </article>
         <article class="tarjeta">
           <div class="icono" aria-hidden="true">💸</div>
           <h3>Precios asequibles</h3>
-          <p>Planes baratos o gratis, y descuentos del club que mejoran cuanto más sales: nivel bronce, nivel plata. <span class="pendiente">[DATO PENDIENTE: % de descuento por nivel]</span> <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
+          <p>Planes gratis o desde 1 €, como museos en horario gratuito o montaditos a 1 €, y descuentos del club que mejoran cuanto más sales: nivel bronce, nivel plata. <span class="pendiente">[DATO PENDIENTE: % de descuento por nivel]</span></p>
         </article>
         <article class="tarjeta">
           <div class="icono" aria-hidden="true">👋</div>
           <h3>Gente nueva</h3>
-          <p>Ve quién va a cada plan, habla con esa gente antes de ir y únete a grupos afines. Llegas sabiendo con quién vas. <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
+          <p>Ve quién va a cada plan, habla con esa gente antes de ir y únete a grupos afines. Llegas sabiendo con quién vas.</p>
         </article>
       </div>
     </div>
@@ -233,10 +234,10 @@
   <!-- Comparación con lo que usan hoy (H2) -->
   <section aria-labelledby="t-comparacion">
     <div class="envoltorio">
-      <h2 id="t-comparacion">Ideas tienes de sobra. Te falta con quién. <span class="revisar" aria-hidden="true">[REVISAR]</span></h2>
-      <p class="entradilla">Redes, peer to peer, preguntar a conocidos o mirar reseñas te dan ideas. Pero un plan solo pasa si hay alguien con quien ir. <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
+      <h2 id="t-comparacion">Ideas tienes de sobra. Te falta con quién.</h2>
+      <p class="entradilla">Redes, peer to peer, preguntar a conocidos o mirar reseñas te dan ideas. Pero un plan solo pasa si hay alguien con quien ir.</p>
       <table class="comparativa">
-        <caption class="nota" style="caption-side: bottom; text-align: left; padding-top: 8px;">Comparativa de funciones. <span class="revisar" aria-hidden="true">[REVISAR]</span></caption>
+        <caption class="nota" style="caption-side: bottom; text-align: left; padding-top: 8px;">Comparativa de funciones.</caption>
         <thead>
           <tr><th scope="col">Hoy buscas en…</th><th scope="col">¿Ves quién va?</th><th scope="col">¿Filtras por presupuesto?</th></tr>
         </thead>
@@ -268,7 +269,7 @@
       <h2 id="t-precio">¿Cuánto cuesta?</h2>
       <div class="precio-grande">
         <span class="cifra">Gratis</span>
-        <p>para estudiantes. Tu dinero, para el plan; no para la app. <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
+        <p>para estudiantes. Tu dinero, para el plan; no para la app.</p>
       </div>
     </div>
   </section>
@@ -276,7 +277,7 @@
   <!-- Preguntas frecuentes -->
   <section aria-labelledby="t-faq">
     <div class="envoltorio">
-      <h2 id="t-faq">Preguntas frecuentes <span class="revisar" aria-hidden="true">[REVISAR]</span></h2>
+      <h2 id="t-faq">Preguntas frecuentes</h2>
       <details>
         <summary>Acabo de llegar y no conozco a nadie. ¿Me sirve?</summary>
         <p>Para eso está. Ves quién se ha apuntado a cada plan, hablas con esa gente antes de ir y te unes a grupos afines.</p>
@@ -308,7 +309,7 @@
   <section aria-labelledby="t-espera">
     <div class="envoltorio">
       <h2 id="t-espera">Apúntate a la lista de espera</h2>
-      <p class="entradilla">Te avisamos cuando abramos Plannazo en tu campus. Solo necesitamos tu email. <span class="revisar" aria-hidden="true">[REVISAR]</span></p>
+      <p class="entradilla">Te avisamos cuando abramos Plannazo en tu campus. Solo necesitamos tu email.</p>
       <form class="espera tarjeta" id="form-espera" novalidate>
         <div class="campo">
           <label for="email">Tu email</label>
