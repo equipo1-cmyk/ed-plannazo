@@ -164,12 +164,11 @@
         <ul class="lista">
           <li class="tarjeta plan">
             <div class="fila"><span class="nombre">Brunch</span><span class="precio">10 €</span></div>
-            <p class="nota">Precio de ejemplo del prototipo.</p>
             <button class="boton pequeno" type="button" data-cta="consigue_tu_entrada" data-plan="brunch">Consigue tu entrada</button>
           </li>
           <li class="tarjeta plan">
             <div class="fila"><span class="nombre">Tardeo en Nuevos Ministerios</span><span class="precio">12 €</span></div>
-            <p class="nota">Precio de ejemplo del prototipo.</p>
+            <div class="chips"><span class="chip mayores">+18</span></div>
             <button class="boton pequeno" type="button" data-cta="consigue_tu_entrada" data-plan="tardeo">Consigue tu entrada</button>
           </li>
         </ul>
@@ -180,16 +179,10 @@
         <h3>Opiniones de nuestros PLANNERS</h3>
         <ul class="lista">
           <li class="tarjeta">
-            <figure class="opinion">
-              <blockquote>«He hecho amigos para toda la vida»</blockquote>
-              <figcaption class="nota">Texto de ejemplo del wireframe. <span class="pendiente">[DATO PENDIENTE: testimonio real]</span></figcaption>
-            </figure>
+            <figure class="opinion"><blockquote><span class="pendiente">[DATO PENDIENTE: testimonio real]</span></blockquote></figure>
           </li>
           <li class="tarjeta">
-            <figure class="opinion">
-              <blockquote>«Salir sin dinero ya no es un problema»</blockquote>
-              <figcaption class="nota">Texto de ejemplo del wireframe. <span class="pendiente">[DATO PENDIENTE: testimonio real]</span></figcaption>
-            </figure>
+            <figure class="opinion"><blockquote><span class="pendiente">[DATO PENDIENTE: testimonio real]</span></blockquote></figure>
           </li>
         </ul>
       </div>
@@ -249,7 +242,7 @@
         <p class="nota" style="margin-top:8px">En el prototipo no se cobra nada.</p>
       </div>
 
-      <footer class="nota"><span class="pendiente">[DATO PENDIENTE: texto del pie de PLANNAZOS]</span><br>Planes de ejemplo para el prototipo. Siempre hay planes sin alcohol; bares y discotecas, solo +18.</footer>
+      <footer class="nota"><span class="pendiente">[DATO PENDIENTE: texto del pie de PLANNAZOS]</span><br>Siempre hay planes sin alcohol; bares y discotecas, solo +18.</footer>
     </section>
 
     <!-- ============ Pantalla 3 — Conocer gente ============ -->
@@ -345,16 +338,14 @@
     });
   });
 
-  // ---------- Planes de ejemplo (sin backend) ----------
+  // ---------- Planes (sin backend) ----------
+  // Solo los planes y precios del wireframe; el resto queda pendiente de datos reales.
+  // precio: null = precio pendiente (no entra en la búsqueda por presupuesto).
   var PLANES = [
-    { id: "picnic", nombre: "Picnic en El Retiro", categoria: "ocio", precio: 0, sinAlcohol: true, apuntados: 6 },
-    { id: "museo", nombre: "Museo gratis a última hora", categoria: "ocio", precio: 0, sinAlcohol: true, apuntados: 4 },
-    { id: "brunch", nombre: "Brunch", categoria: "restaurantes", precio: 10, sinAlcohol: true, apuntados: 5 },
-    { id: "tardeo", nombre: "Tardeo en Nuevos Ministerios", categoria: "entretenimiento", precio: 12, mayores: true, apuntados: 8 },
-    { id: "bolos", nombre: "Bolos y patatas", categoria: "entretenimiento", precio: 14, sinAlcohol: true, apuntados: 3 },
-    { id: "ramen", nombre: "Ramen en Lavapiés", categoria: "restaurantes", precio: 15, sinAlcohol: true, apuntados: 4 },
-    { id: "disco", nombre: "Sesión en discoteca", categoria: "discotecas", precio: 15, mayores: true, apuntados: 9 },
-    { id: "karaoke", nombre: "Karaoke en grupo", categoria: "entretenimiento", precio: 18, apuntados: 5 }
+    { id: "brunch", nombre: "Brunch", categoria: "restaurantes", precio: 10 },
+    { id: "tardeo", nombre: "Tardeo en Nuevos Ministerios", categoria: "entretenimiento", precio: 12, mayores: true },
+    { id: "gratis", nombre: "[DATO PENDIENTE: plan gratis de ocio y cultura]", categoria: "ocio", precio: 0, sinAlcohol: true },
+    { id: "disco", nombre: "[DATO PENDIENTE: plan de discoteca]", categoria: "discotecas", precio: null, mayores: true }
   ];
   var NOMBRES_CATEGORIA = { restaurantes: "Restaurantes", ocio: "Ocio y cultura", entretenimiento: "Entretenimiento", discotecas: "Discotecas" };
 
@@ -369,12 +360,13 @@
     var vacio = document.getElementById("sin-resultados");
     lista.innerHTML = "";
     var resultados = PLANES.filter(function (p) {
-      return (estado.presupuesto == null || p.precio <= estado.presupuesto) && (!estado.categoria || p.categoria === estado.categoria);
+      var cabe = estado.presupuesto == null || (p.precio != null && p.precio <= estado.presupuesto);
+      return cabe && (!estado.categoria || p.categoria === estado.categoria);
     });
     document.getElementById("t-resultados").hidden = false;
     if (!resultados.length) {
       vacio.hidden = false;
-      vacio.textContent = "Con ese presupuesto no hay planes de este tipo. Prueba otra categoría o los planes gratis.";
+      vacio.textContent = "Con ese presupuesto no hay planes de este tipo. Prueba otra categoría.";
       return;
     }
     vacio.hidden = true;
@@ -384,10 +376,10 @@
       var chips = '<span class="chip">' + NOMBRES_CATEGORIA[p.categoria] + "</span>";
       if (p.sinAlcohol) chips += '<span class="chip sin-alcohol">Sin alcohol</span>';
       if (p.mayores) chips += '<span class="chip mayores">+18</span>';
-      chips += '<span class="chip">' + p.apuntados + " apuntados</span>";
+      var precio = p.precio == null ? '<span class="pendiente">[DATO PENDIENTE: precio]</span>' : p.precio ? euros(p.precio) : "Gratis";
       li.innerHTML =
-        '<div class="fila"><span class="nombre">' + p.nombre + '</span><span class="precio">' + (p.precio ? euros(p.precio) : "Gratis") + "</span></div>" +
-        '<p class="nota">por persona · ' + nombreDia() + " · precio de ejemplo</p>" +
+        '<div class="fila"><span class="nombre">' + p.nombre + '</span><span class="precio">' + precio + "</span></div>" +
+        '<p class="nota">por persona · ' + nombreDia() + "</p>" +
         '<div class="chips">' + chips + "</div>" +
         '<div class="acciones-plan">' +
           '<button class="boton pequeno" type="button" data-accion="votar" aria-pressed="false">Votar este plan</button>' +
@@ -408,12 +400,12 @@
     medir("votar", { plan: p.id, precio: p.precio });
 
     var personas = estado.personas || 1;
-    var total = p.precio * personas;
+    var total = (p.precio || 0) * personas;
     var reparto = li.querySelector(".reparto");
     reparto.hidden = false;
     reparto.innerHTML =
       "<p><strong>Votos del grupo:</strong> 1 de " + personas + ". En el prototipo damos por hecho que el resto también vota.</p>" +
-      "<p>Total para " + personas + (personas === 1 ? " persona" : " personas") + ": <strong>" + (total ? euros(total) : "Gratis") + "</strong></p>" +
+      "<p>Total para " + personas + (personas === 1 ? " persona" : " personas") + ": <strong>" + (p.precio == null ? "[DATO PENDIENTE: precio]" : total ? euros(total) : "Gratis") + "</strong></p>" +
       (total ? '<p>Cada uno paga <span class="cuota">' + euros(total / personas) + "</span></p>" : "") +
       '<button class="boton ancho" type="button" data-cta="dividir_pago">' + (total ? "Dividir el pago y cerrar plan" : "Cerrar plan") + "</button>";
     reparto.querySelector("button").addEventListener("click", function () { cerrar(p, personas, total); });
@@ -427,7 +419,7 @@
     var caja = document.getElementById("plan-cerrado");
     document.getElementById("resumen-cerrado").textContent =
       p.nombre + ", " + nombreDia() + ". " + personas + (personas === 1 ? " persona" : " personas") +
-      (total ? ", " + euros(total / personas) + " cada uno." : ", gratis.");
+      (p.precio == null ? ". Precio [DATO PENDIENTE]." : total ? ", " + euros(total / personas) + " cada uno." : ", gratis.");
     caja.hidden = false;
     caja.focus();
   }
