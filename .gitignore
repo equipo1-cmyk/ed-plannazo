@@ -1,0 +1,21 @@
+# Datos de investigación y personales: nunca se suben
+datos/
+*.csv
+*.tsv
+*.xlsx
+*.xls
+transcripciones/
+*transcripcion*
+*transcripción*
+*entrevista*
+*encuesta*
+
+# Secretos
+.env
+.env.*
+*.key
+*.pem
+secrets*
+
+# Sistema
+.DS_Store
