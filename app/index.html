@@ -131,6 +131,13 @@
   .acciones-plan { display: flex; flex-wrap: wrap; gap: 8px; }
   .reparto { background: var(--lima); border: 2px solid var(--tinta); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
   .reparto .cuota { font-size: 24px; font-weight: 800; }
+  .subt { margin: 6px 0 0; font-size: 15px; font-weight: 600; }
+  .voto { display: flex; align-items: center; gap: 10px; background: var(--tarjeta); border: 2px solid var(--tinta); border-radius: 12px; padding: 8px 10px; }
+  .voto .info { flex: 1; min-width: 0; display: grid; }
+  .dias { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .dia { font-family: inherit; font-size: 13px; font-weight: 600; min-height: 40px; border: 2px solid var(--tinta); border-radius: 10px; background: var(--tarjeta); color: var(--tinta); cursor: pointer; }
+  .boton:disabled, .dia:disabled { opacity: .5; cursor: not-allowed; }
+  .aviso-cancelada { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
   .exito { background: var(--lima); text-align: center; }
   .exito .grande { font-size: 40px; }
 
@@ -194,7 +201,7 @@
         <h3>Benefíciate con nosotros</h3>
         <ul class="lista beneficios">
           <li><span class="icono" aria-hidden="true">✨</span>Planes distintos</li>
-          <li><span class="icono" aria-hidden="true">💸</span>Precios asequibles</li>
+          <li><span class="icono" aria-hidden="true">💸</span>Precios fijos: tú eliges cuánto gastar</li>
           <li><span class="icono" aria-hidden="true">👋</span>Gente nueva</li>
         </ul>
       </div>
@@ -294,12 +301,27 @@
         <p class="nota" id="sin-resultados" hidden></p>
       </div>
 
+      <section class="tarjeta reparto" id="votacion" aria-labelledby="t-votacion" hidden>
+        <h3 id="t-votacion" style="margin:0">Votación del grupo</h3>
+        <p class="nota">Pasad el móvil: cada uno vota su plan y su día favoritos. Gana el más votado.</p>
+        <p class="nota" id="votacion-estado" role="status"></p>
+        <h4 class="subt">¿Qué plan?</h4>
+        <ul class="lista" id="votacion-planes"></ul>
+        <h4 class="subt">¿Qué día?</h4>
+        <div class="dias" id="votacion-dias" role="group" aria-label="Días de la semana"></div>
+        <div id="votacion-resultado" aria-live="polite"></div>
+        <button class="boton pequeno secundario" type="button" id="reiniciar-votacion">Reiniciar votos</button>
+      </section>
+
       <div class="tarjeta exito" id="plan-cerrado" role="status" tabindex="-1" hidden>
         <p class="grande" aria-hidden="true">🎉</p>
         <h3>¡Plan cerrado!</h3>
         <p id="resumen-cerrado"></p>
         <p class="nota" style="margin-top:8px">En el prototipo no se cobra nada.</p>
-        <button class="boton pequeno secundario" type="button" data-ir="mis" style="margin-top:12px">Ver en Mis Plannazos</button>
+        <div class="acciones-plan" style="justify-content:center;margin-top:12px">
+          <button class="boton pequeno secundario" type="button" data-ir="mis">Ver en Mis Plannazos</button>
+          <button class="boton pequeno secundario" type="button" id="cancelar-desde-cerrado">Cancelar reserva</button>
+        </div>
       </div>
 
       <footer class="nota">
@@ -381,6 +403,8 @@
         <h2 id="t-mis">Mis Plannazos</h2>
         <p>Los planes a los que te has apuntado.</p>
       </div>
+
+      <p class="tarjeta aviso-cancelada" id="aviso-cancelada" role="status" hidden><span></span> <button class="boton pequeno" type="button" id="deshacer-cancelacion">Deshacer</button></p>
 
       <ul class="lista" id="lista-mis" aria-labelledby="t-mis"></ul>
 
@@ -486,13 +510,52 @@
       li.innerHTML =
         '<div class="fila"><span class="nombre"></span><span class="precio"></span></div>' +
         '<p class="nota"></p>' +
-        '<div class="chips"><span class="chip sin-alcohol">Apuntado</span></div>';
+        '<div class="chips"><span class="chip sin-alcohol">Apuntado</span></div>' +
+        '<button class="boton pequeno secundario" type="button">Cancelar reserva</button>';
       li.querySelector(".nombre").textContent = m.nombre;
       li.querySelector(".precio").textContent = m.precio;
       li.querySelector(".nota").textContent = m.detalle;
+      var boton = li.querySelector("button");
+      boton.setAttribute("aria-label", "Cancelar la reserva de " + m.nombre);
+      boton.addEventListener("click", function () { cancelarReserva(m.id); });
       lista.appendChild(li);
     });
   }
+
+  // Cancelar una reserva (con confirmación y opción de deshacer)
+  var ultimaCancelada = null;
+  function cancelarReserva(id) {
+    var plan = misPlanes.filter(function (m) { return m.id === id; })[0];
+    if (!plan) return;
+    if (!window.confirm("¿Cancelar tu reserva de «" + plan.nombre + "»?")) return;
+    misPlanes = misPlanes.filter(function (m) { return m.id !== id; });
+    ultimaCancelada = plan;
+    registrar("cta_click", { cta: "cancelar_reserva", plan: id });
+    // Si venía de «Planes populares», el botón vuelve a estar disponible
+    document.querySelectorAll('[data-cta="consigue_tu_entrada"][data-plan="' + id + '"]').forEach(function (b) {
+      b.textContent = "Consigue tu entrada";
+      b.setAttribute("aria-pressed", "false");
+    });
+    if (planCerradoId === id) document.getElementById("plan-cerrado").hidden = true;
+    pintarMis();
+    var aviso = document.getElementById("aviso-cancelada");
+    aviso.querySelector("span").textContent = "Has cancelado «" + plan.nombre + "». No se te cobra nada.";
+    aviso.hidden = false;
+  }
+  document.getElementById("deshacer-cancelacion").addEventListener("click", function () {
+    if (!ultimaCancelada) return;
+    registrar("cta_click", { cta: "deshacer_cancelacion", plan: ultimaCancelada.id });
+    document.querySelectorAll('[data-cta="consigue_tu_entrada"][data-plan="' + ultimaCancelada.id + '"]').forEach(function (b) {
+      b.textContent = "¡Entrada reservada!";
+      b.setAttribute("aria-pressed", "true");
+    });
+    apuntarme(ultimaCancelada);
+    ultimaCancelada = null;
+    document.getElementById("aviso-cancelada").hidden = true;
+  });
+  document.getElementById("cancelar-desde-cerrado").addEventListener("click", function () {
+    if (planCerradoId) cancelarReserva(planCerradoId);
+  });
 
   // ---------- Feed: «Consigue tu entrada» (H1: intención de pago) ----------
   document.querySelectorAll('[data-cta="consigue_tu_entrada"]').forEach(function (b) {
@@ -613,7 +676,7 @@
     if (document.getElementById("t-resultados").hidden === false) pintar();
     pintarMapa();
   }
-  var inicioTarea = null, primeraBusqueda = null, planCerrado = false;
+  var inicioTarea = null, primeraBusqueda = null, planCerrado = false, planCerradoId = null;
 
   function euros(n) { return (Math.round(n * 100) / 100).toLocaleString("es-ES", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }) + " €"; }
   function nombreDia() { return "el " + DIAS[estado.dia]; }
@@ -622,6 +685,7 @@
     var lista = document.getElementById("lista-resultados");
     var vacio = document.getElementById("sin-resultados");
     lista.innerHTML = "";
+    pintarVotacion();
     var resultados = PLANES.map(resolver).filter(function (p) {
       if (!p) return false;
       var cabe = estado.presupuesto == null || p.precio <= estado.presupuesto;
@@ -654,37 +718,136 @@
         '<p class="suave detalle">' + p.detalle + "</p>" +
         '<div class="chips">' + chips + "</div>" +
         '<div class="acciones-plan">' +
-          '<button class="boton pequeno" type="button" data-accion="votar" aria-pressed="false">Votar este plan</button>' +
-        "</div>" +
-        '<div class="reparto" hidden></div>';
-      li.querySelector('[data-accion="votar"]').addEventListener("click", function (e) { votar(p, li, e.currentTarget); });
+          '<button class="boton pequeno" type="button" data-accion="candidato" aria-pressed="false"></button>' +
+        "</div>";
+      var boton = li.querySelector('[data-accion="candidato"]');
+      marcarCandidato(boton, p.id);
+      boton.addEventListener("click", function () { alternarCandidato(p.id); });
+      boton.dataset.plan = p.id;
       lista.appendChild(li);
     });
   }
 
-  function votar(p, li, boton) {
-    document.querySelectorAll('[data-accion="votar"]').forEach(function (b) {
-      b.setAttribute("aria-pressed", "false"); b.textContent = "Votar este plan";
-    });
-    document.querySelectorAll(".reparto").forEach(function (r) { r.hidden = true; });
-    boton.setAttribute("aria-pressed", "true");
-    boton.textContent = "Tu voto ✓";
-    registrar("votar", { plan: p.id, precio: p.precio });
-
-    var personas = estado.personas || 1;
-    var total = (p.precio || 0) * personas;
-    var reparto = li.querySelector(".reparto");
-    reparto.hidden = false;
-    reparto.innerHTML =
-      "<p><strong>Votos del grupo:</strong> 1 de " + personas + ". En el prototipo damos por hecho que el resto también vota.</p>" +
-      "<p>Total para " + personas + (personas === 1 ? " persona" : " personas") + ": <strong>" + (p.precio == null ? "[DATO PENDIENTE: precio]" : total ? euros(total) : "Gratis") + "</strong></p>" +
-      (total ? '<p>Cada uno paga <span class="cuota">' + euros(total / personas) + "</span></p>" : "") +
-      '<button class="boton ancho" type="button" data-cta="dividir_pago">' + (total ? "Dividir el pago y cerrar plan" : "Cerrar plan") + "</button>";
-    reparto.querySelector("button").addEventListener("click", function () { cerrar(p, personas, total); });
+  // ---------- Votación del grupo: plan (destino) y día ----------
+  // Se vota en el mismo móvil: cada persona del grupo toca su plan y su día favoritos.
+  var votacion = { candidatos: [], votosPlan: {}, votosDia: {} };
+  function sumar(obj) { return Object.keys(obj).reduce(function (s, k) { return s + obj[k]; }, 0); }
+  function ganador(obj, orden) {
+    var mejor = null;
+    orden.forEach(function (k) { if ((obj[k] || 0) > 0 && (mejor == null || obj[k] > obj[mejor])) mejor = k; });
+    return mejor;
   }
+  function planPorId(id) { return PLANES.filter(function (p) { return p.id === id; })[0]; }
+  function marcarCandidato(boton, id) {
+    var dentro = votacion.candidatos.indexOf(id) >= 0;
+    boton.setAttribute("aria-pressed", dentro ? "true" : "false");
+    boton.textContent = dentro ? "En la votación ✓" : "Añadir a la votación";
+  }
+  function alternarCandidato(id) {
+    var i = votacion.candidatos.indexOf(id);
+    if (i >= 0) { votacion.candidatos.splice(i, 1); delete votacion.votosPlan[id]; }
+    else { votacion.candidatos.push(id); registrar("cta_click", { cta: "anadir_votacion", plan: id }); }
+    document.querySelectorAll('[data-accion="candidato"]').forEach(function (b) { marcarCandidato(b, b.dataset.plan); });
+    pintarVotacion();
+    if (i < 0 && votacion.candidatos.length === 1) document.getElementById("votacion").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function pintarVotacion() {
+    var caja = document.getElementById("votacion");
+    caja.hidden = votacion.candidatos.length === 0;
+    if (caja.hidden) return;
+    var personas = estado.personas || 1;
+    var votadosPlan = sumar(votacion.votosPlan), votadosDia = sumar(votacion.votosDia);
+    document.getElementById("votacion-estado").textContent =
+      "Votos al plan: " + votadosPlan + " de " + personas + " · Votos al día: " + votadosDia + " de " + personas;
+
+    var ul = document.getElementById("votacion-planes");
+    ul.innerHTML = "";
+    votacion.candidatos.forEach(function (id) {
+      var p = planPorId(id), n = votacion.votosPlan[id] || 0;
+      var li = document.createElement("li");
+      li.className = "voto";
+      li.innerHTML = '<span class="info"><strong></strong><span class="nota"></span></span><button class="boton pequeno" type="button"></button>';
+      li.querySelector("strong").textContent = p.nombre;
+      li.querySelector(".nota").textContent = textoPrecio(p) + " · " + diasTexto(p);
+      var b = li.querySelector("button");
+      b.textContent = "Votar (" + n + ")";
+      b.setAttribute("aria-label", "Votar " + p.nombre + ", lleva " + n + (n === 1 ? " voto" : " votos"));
+      b.disabled = votadosPlan >= personas;
+      b.addEventListener("click", function () {
+        votacion.votosPlan[id] = n + 1;
+        registrar("votar", { plan: id });
+        pintarVotacion();
+      });
+      ul.appendChild(li);
+    });
+
+    var dias = document.getElementById("votacion-dias");
+    dias.innerHTML = "";
+    [1, 2, 3, 4, 5, 6, 7].forEach(function (d) {
+      var n = votacion.votosDia[d] || 0;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "dia";
+      b.textContent = DIAS[d].charAt(0).toUpperCase() + DIAS[d].slice(1, 3) + " · " + n;
+      b.setAttribute("aria-label", "Votar el " + DIAS[d] + ", lleva " + n + (n === 1 ? " voto" : " votos"));
+      b.disabled = votadosDia >= personas;
+      b.addEventListener("click", function () {
+        votacion.votosDia[d] = n + 1;
+        registrar("cta_click", { cta: "votar_dia" });
+        pintarVotacion();
+      });
+      dias.appendChild(b);
+    });
+
+    var idGanador = ganador(votacion.votosPlan, votacion.candidatos);
+    var diaGanador = ganador(votacion.votosDia, [1, 2, 3, 4, 5, 6, 7]);
+    var resultado = document.getElementById("votacion-resultado");
+    resultado.innerHTML = "";
+    if (!idGanador || !diaGanador) {
+      resultado.innerHTML = '<p class="nota">Cuando haya al menos un voto al plan y otro al día, aquí veréis el ganador y lo que paga cada uno.</p>';
+      return;
+    }
+    diaGanador = Number(diaGanador);
+    var base = planPorId(idGanador);
+    var diaAntes = estado.dia;
+    estado.dia = diaGanador;
+    var p = resolver(base);
+    estado.dia = diaAntes;
+    var titulo = document.createElement("p");
+    titulo.innerHTML = "<strong>Va ganando:</strong> <span></span>";
+    titulo.querySelector("span").textContent = base.nombre + ", el " + DIAS[diaGanador] + ".";
+    resultado.appendChild(titulo);
+    if (!p) {
+      var aviso = document.createElement("p");
+      aviso.className = "nota";
+      aviso.textContent = "Este plan no está disponible el " + DIAS[diaGanador] + " (" + diasTexto(base).toLowerCase() + "). Votad otro día.";
+      resultado.appendChild(aviso);
+      return;
+    }
+    var total = p.precio * personas;
+    var reparto = document.createElement("div");
+    reparto.innerHTML =
+      "<p>Total para " + personas + (personas === 1 ? " persona" : " personas") + ": <strong>" + (total ? (p.desde ? "desde " : "") + euros(total) : (p.etiqueta || "Gratis")) + "</strong></p>" +
+      (total ? '<p>Cada uno paga <span class="cuota">' + euros(total / personas) + "</span></p>" : "") +
+      '<button class="boton ancho" type="button">' + (total ? "Dividir el pago y cerrar plan" : "Cerrar plan") + "</button>";
+    reparto.querySelector("button").addEventListener("click", function () {
+      estado.dia = diaGanador;
+      document.getElementById("dia").value = String(diaGanador);
+      cerrar(p, personas, total);
+    });
+    resultado.appendChild(reparto);
+  }
+  document.getElementById("reiniciar-votacion").addEventListener("click", function () {
+    votacion.votosPlan = {};
+    votacion.votosDia = {};
+    registrar("cta_click", { cta: "reiniciar_votacion" });
+    pintarVotacion();
+  });
 
   function cerrar(p, personas, total) {
     planCerrado = true;
+    planCerradoId = p.id;
     var segundos = inicioTarea ? Math.round((Date.now() - inicioTarea) / 1000) : null;
     registrar("cta_click", { cta: "dividir_pago", plan: p.id, segundos: segundos });
     registrar("tarea_completada", { plan: p.id, personas: personas, total: total, segundos: segundos, metodo_primero: primeraBusqueda });
