@@ -132,6 +132,19 @@
   .reparto { background: var(--lima); border: 2px solid var(--tinta); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
   .reparto .cuota { font-size: 24px; font-weight: 800; }
   .subt { margin: 6px 0 0; font-size: 15px; font-weight: 600; }
+  /* Chat del grupo */
+  .chat { display: grid; gap: 10px; }
+  .anadir { display: grid; gap: 6px; }
+  .mensajes { list-style: none; margin: 0; padding: 10px; display: grid; gap: 8px; background: #fff; border: 2px solid var(--tinta); border-radius: 12px; max-height: 460px; overflow-y: auto; }
+  .msg { max-width: 85%; padding: 8px 12px; border-radius: 14px; border: 1.5px solid var(--tinta); background: var(--tarjeta); justify-self: start; }
+  .msg .autor { display: block; font-size: 12px; font-weight: 600; color: var(--suave); }
+  .msg.mio { justify-self: end; background: var(--lima); }
+  .msg.sistema { justify-self: center; max-width: 100%; border: 0; background: transparent; font-size: 13px; color: var(--suave); text-align: center; padding: 2px; }
+  .msg.encuesta { max-width: 100%; width: 100%; background: var(--gris); display: grid; gap: 8px; }
+  .msg.encuesta .quienes { font-size: 12px; color: var(--suave); }
+  .chat-form { display: flex; gap: 8px; }
+  .chat-form input { flex: 1; min-width: 0; font-family: inherit; font-size: 16px; padding: 8px 12px; min-height: 44px; border: 2px solid var(--tinta); border-radius: 999px; }
+  .dia[aria-pressed="true"], .voto .boton[aria-pressed="true"] { background: var(--tinta); color: var(--lima); }
   .voto { display: flex; align-items: center; gap: 10px; background: var(--tarjeta); border: 2px solid var(--tinta); border-radius: 12px; padding: 8px 10px; }
   .voto .info { flex: 1; min-width: 0; display: grid; }
   .dias { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
@@ -302,15 +315,11 @@
       </div>
 
       <section class="tarjeta reparto" id="votacion" aria-labelledby="t-votacion" hidden>
-        <h3 id="t-votacion" style="margin:0">Votación del grupo</h3>
-        <p class="nota">Pasad el móvil: cada uno vota su plan y su día favoritos. Gana el más votado.</p>
-        <p class="nota" id="votacion-estado" role="status"></p>
-        <h4 class="subt">¿Qué plan?</h4>
+        <h3 id="t-votacion" style="margin:0">Votación para tu grupo</h3>
+        <p class="nota">Envía estos planes al chat del grupo: cada uno vota el plan y el día desde su móvil.</p>
         <ul class="lista" id="votacion-planes"></ul>
-        <h4 class="subt">¿Qué día?</h4>
-        <div class="dias" id="votacion-dias" role="group" aria-label="Días de la semana"></div>
-        <div id="votacion-resultado" aria-live="polite"></div>
-        <button class="boton pequeno secundario" type="button" id="reiniciar-votacion">Reiniciar votos</button>
+        <p class="nota" id="votacion-sin-grupo" hidden>Aún no tienes grupo: conecta con gente y la votación se enviará al chat en cuanto lo crees.</p>
+        <button class="boton ancho" type="button" id="enviar-votacion">Enviar votación al chat del grupo</button>
       </section>
 
       <div class="tarjeta exito" id="plan-cerrado" role="status" tabindex="-1" hidden>
@@ -365,6 +374,23 @@
         <button class="boton ancho" type="submit" data-cta="conectar">Conectar</button>
         <p id="ok-conectar" role="status" hidden></p>
       </form>
+
+      <!-- Chat del grupo: se abre al conectar con gente -->
+      <section class="tarjeta chat" id="chat" aria-labelledby="t-chat" tabindex="-1" hidden>
+        <h3 id="t-chat" style="margin:0">Chat del grupo</h3>
+        <p class="nota" id="chat-miembros"></p>
+        <div class="anadir" id="chat-anadir">
+          <p class="subt">Añadir más personas</p>
+          <div class="acciones-plan" id="chat-candidatos"></div>
+        </div>
+        <ol class="mensajes" id="chat-mensajes" role="log" aria-live="polite" aria-label="Mensajes del grupo"></ol>
+        <form class="chat-form" id="chat-form">
+          <label for="chat-texto" class="solo-lector">Escribe un mensaje al grupo</label>
+          <input id="chat-texto" type="text" autocomplete="off" placeholder="Escribe al grupo…" maxlength="300">
+          <button class="boton pequeno" type="submit">Enviar</button>
+        </form>
+        <p class="nota">Prototipo: los mensajes y votos de los demás están simulados.</p>
+      </section>
     </section>
 
     <!-- ============ Pantalla — Mapa ============ -->
@@ -728,121 +754,267 @@
     });
   }
 
-  // ---------- Votación del grupo: plan (destino) y día ----------
-  // Se vota en el mismo móvil: cada persona del grupo toca su plan y su día favoritos.
-  var votacion = { candidatos: [], votosPlan: {}, votosDia: {} };
-  function sumar(obj) { return Object.keys(obj).reduce(function (s, k) { return s + obj[k]; }, 0); }
-  function ganador(obj, orden) {
+  // ---------- Grupo, chat y votación ----------
+  // Cada persona vota el plan y el día desde su propio móvil, dentro del chat del grupo.
+  // Sin backend: en el prototipo, los mensajes y votos de los demás se simulan.
+  var PERSONAS = {
+    luis: { nombre: "Luis", ini: "L" },
+    claudia: { nombre: "Claudia", ini: "C" },
+    marcos: { nombre: "Marcos", ini: "M" },
+    sara: { nombre: "Sara", ini: "S", detalle: "21 años, Periodismo" },
+    hugo: { nombre: "Hugo", ini: "H", detalle: "20 años, Medicina" }
+  };
+  var RESPUESTAS = ["¡Me apunto! 🙌", "¿A qué hora quedamos?", "Yo puedo cualquier día menos el lunes", "Votad en la encuesta y lo cerramos 😉", "¡Qué ganas!"];
+  var grupo = { miembros: [], mensajes: [], encuesta: null, pendiente: false };
+  var candidatos = [];
+
+  function planPorId(id) { return PLANES.filter(function (p) { return p.id === id; })[0]; }
+  function nombreDe(quien) { return quien === "tu" ? "Tú" : PERSONAS[quien].nombre; }
+  function enGrupo() { return 1 + grupo.miembros.length; }
+  function listaNombres(ids) {
+    var n = ids.map(function (id) { return PERSONAS[id].nombre; });
+    return n.length > 1 ? n.slice(0, -1).join(", ") + " y " + n[n.length - 1] : n[0] || "";
+  }
+  function contar(votos) {
+    var c = {};
+    Object.keys(votos).forEach(function (q) { c[votos[q]] = (c[votos[q]] || 0) + 1; });
+    return c;
+  }
+  function ganador(conteo, orden) {
     var mejor = null;
-    orden.forEach(function (k) { if ((obj[k] || 0) > 0 && (mejor == null || obj[k] > obj[mejor])) mejor = k; });
+    orden.forEach(function (k) { if ((conteo[k] || 0) > 0 && (mejor == null || conteo[k] > conteo[mejor])) mejor = k; });
     return mejor;
   }
-  function planPorId(id) { return PLANES.filter(function (p) { return p.id === id; })[0]; }
+
+  // Candidatos elegidos en Planes
   function marcarCandidato(boton, id) {
-    var dentro = votacion.candidatos.indexOf(id) >= 0;
+    var dentro = candidatos.indexOf(id) >= 0;
     boton.setAttribute("aria-pressed", dentro ? "true" : "false");
     boton.textContent = dentro ? "En la votación ✓" : "Añadir a la votación";
   }
   function alternarCandidato(id) {
-    var i = votacion.candidatos.indexOf(id);
-    if (i >= 0) { votacion.candidatos.splice(i, 1); delete votacion.votosPlan[id]; }
-    else { votacion.candidatos.push(id); registrar("cta_click", { cta: "anadir_votacion", plan: id }); }
+    var i = candidatos.indexOf(id);
+    if (i >= 0) candidatos.splice(i, 1);
+    else { candidatos.push(id); registrar("cta_click", { cta: "anadir_votacion", plan: id }); }
     document.querySelectorAll('[data-accion="candidato"]').forEach(function (b) { marcarCandidato(b, b.dataset.plan); });
     pintarVotacion();
-    if (i < 0 && votacion.candidatos.length === 1) document.getElementById("votacion").scrollIntoView({ behavior: "smooth", block: "start" });
+    if (i < 0 && candidatos.length === 1) document.getElementById("votacion").scrollIntoView({ behavior: "smooth", block: "start" });
   }
-
   function pintarVotacion() {
     var caja = document.getElementById("votacion");
-    caja.hidden = votacion.candidatos.length === 0;
+    caja.hidden = candidatos.length === 0;
     if (caja.hidden) return;
-    var personas = estado.personas || 1;
-    var votadosPlan = sumar(votacion.votosPlan), votadosDia = sumar(votacion.votosDia);
-    document.getElementById("votacion-estado").textContent =
-      "Votos al plan: " + votadosPlan + " de " + personas + " · Votos al día: " + votadosDia + " de " + personas;
-
     var ul = document.getElementById("votacion-planes");
     ul.innerHTML = "";
-    votacion.candidatos.forEach(function (id) {
-      var p = planPorId(id), n = votacion.votosPlan[id] || 0;
+    candidatos.forEach(function (id) {
+      var p = planPorId(id);
       var li = document.createElement("li");
       li.className = "voto";
-      li.innerHTML = '<span class="info"><strong></strong><span class="nota"></span></span><button class="boton pequeno" type="button"></button>';
+      li.innerHTML = '<span class="info"><strong></strong><span class="nota"></span></span><button class="boton pequeno secundario" type="button">Quitar</button>';
       li.querySelector("strong").textContent = p.nombre;
       li.querySelector(".nota").textContent = textoPrecio(p) + " · " + diasTexto(p);
-      var b = li.querySelector("button");
-      b.textContent = "Votar (" + n + ")";
-      b.setAttribute("aria-label", "Votar " + p.nombre + ", lleva " + n + (n === 1 ? " voto" : " votos"));
-      b.disabled = votadosPlan >= personas;
-      b.addEventListener("click", function () {
-        votacion.votosPlan[id] = n + 1;
-        registrar("votar", { plan: id });
-        pintarVotacion();
-      });
+      li.querySelector("button").setAttribute("aria-label", "Quitar " + p.nombre + " de la votación");
+      li.querySelector("button").addEventListener("click", function () { alternarCandidato(id); });
       ul.appendChild(li);
     });
+    var sinGrupo = grupo.miembros.length === 0;
+    document.getElementById("votacion-sin-grupo").hidden = !sinGrupo;
+    document.getElementById("enviar-votacion").textContent = sinGrupo ? "Crear grupo y enviar la votación" : "Enviar votación al chat del grupo";
+  }
+  document.getElementById("enviar-votacion").addEventListener("click", function () {
+    registrar("cta_click", { cta: "enviar_votacion" });
+    if (!grupo.miembros.length) {
+      grupo.pendiente = true;
+      ir("gente", false);
+      document.getElementById("form-conectar").scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    enviarEncuesta();
+  });
 
-    var dias = document.getElementById("votacion-dias");
-    dias.innerHTML = "";
+  // Mensajes
+  function decir(quien, texto) {
+    grupo.mensajes.push({ quien: quien, texto: texto });
+    pintarChat();
+  }
+  function enviarEncuesta() {
+    if (!candidatos.length) return;
+    grupo.encuesta = { candidatos: candidatos.slice(), votosPlan: {}, votosDia: {} };
+    grupo.mensajes.push({ quien: "tu", encuesta: true });
+    ir("gente", false);
+    pintarChat();
+    var chat = document.getElementById("chat");
+    chat.scrollIntoView({ behavior: "smooth", block: "start" });
+    grupo.miembros.forEach(function (id, i) { simularVoto(id, i); });
+  }
+  // Voto simulado de cada persona del grupo (desde «su» móvil)
+  function simularVoto(id, i) {
+    var enc = grupo.encuesta;
+    setTimeout(function () {
+      if (grupo.encuesta !== enc || enc.votosPlan[id]) return;
+      var planId = enc.candidatos[i % 2 === 0 ? 0 : i % enc.candidatos.length];
+      var plan = planPorId(planId);
+      var dia = plan.dias.indexOf(estado.dia) >= 0 ? estado.dia : plan.dias[0];
+      enc.votosPlan[id] = planId;
+      enc.votosDia[id] = dia;
+      grupo.mensajes.push({ quien: "sistema", texto: PERSONAS[id].nombre + " ha votado desde su móvil" });
+      pintarChat();
+    }, 1500 + i * 1300);
+  }
+
+  function pintarChat() {
+    var chat = document.getElementById("chat");
+    chat.hidden = grupo.miembros.length === 0;
+    if (chat.hidden) return;
+    document.getElementById("chat-miembros").textContent = "Tú, " + listaNombres(grupo.miembros) + " · " + enGrupo() + " personas";
+
+    // Añadir más personas
+    var cont = document.getElementById("chat-candidatos");
+    cont.innerHTML = "";
+    var libres = Object.keys(PERSONAS).filter(function (id) { return grupo.miembros.indexOf(id) < 0; });
+    document.getElementById("chat-anadir").hidden = libres.length === 0;
+    libres.forEach(function (id) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "boton pequeno secundario";
+      b.textContent = "+ " + PERSONAS[id].nombre + (PERSONAS[id].detalle ? " (" + PERSONAS[id].detalle + ")" : "");
+      b.addEventListener("click", function () { anadirAlGrupo([id]); });
+      cont.appendChild(b);
+    });
+
+    var ol = document.getElementById("chat-mensajes");
+    ol.innerHTML = "";
+    grupo.mensajes.forEach(function (m) {
+      var li = document.createElement("li");
+      if (m.encuesta) { li.className = "msg encuesta"; pintarEncuesta(li); }
+      else if (m.quien === "sistema") { li.className = "msg sistema"; li.textContent = m.texto; }
+      else {
+        li.className = "msg" + (m.quien === "tu" ? " mio" : "");
+        li.innerHTML = '<span class="autor"></span><span class="texto"></span>';
+        li.querySelector(".autor").textContent = nombreDe(m.quien);
+        li.querySelector(".texto").textContent = m.texto;
+      }
+      ol.appendChild(li);
+    });
+    ol.scrollTop = ol.scrollHeight;
+  }
+
+  function pintarEncuesta(li) {
+    var enc = grupo.encuesta, n = enGrupo();
+    var votosPlan = contar(enc.votosPlan), votosDia = contar(enc.votosDia);
+    var votaron = Object.keys(enc.votosPlan).filter(function (q) { return enc.votosDia[q]; }).length;
+    li.innerHTML = '<span class="autor">Tú · Votación</span><strong>¿Qué plan y qué día?</strong><p class="nota"></p>';
+    li.querySelector("p").textContent = "Han votado " + votaron + " de " + n + ". Cada uno vota desde su móvil.";
+
+    enc.candidatos.forEach(function (id) {
+      var p = planPorId(id), c = votosPlan[id] || 0;
+      var fila = document.createElement("div");
+      fila.className = "voto";
+      fila.innerHTML = '<span class="info"><strong></strong><span class="quienes"></span></span><button class="boton pequeno" type="button"></button>';
+      fila.querySelector("strong").textContent = p.nombre + " · " + textoPrecio(p);
+      fila.querySelector(".quienes").textContent = c + (c === 1 ? " voto" : " votos") + (c ? ": " + Object.keys(enc.votosPlan).filter(function (q) { return enc.votosPlan[q] === id; }).map(nombreDe).join(", ") : "");
+      var b = fila.querySelector("button");
+      var mio = enc.votosPlan.tu === id;
+      b.textContent = mio ? "Tu voto ✓" : "Votar";
+      b.setAttribute("aria-pressed", mio ? "true" : "false");
+      b.setAttribute("aria-label", "Votar " + p.nombre);
+      b.addEventListener("click", function () {
+        enc.votosPlan.tu = id;
+        registrar("votar", { plan: id });
+        pintarChat();
+      });
+      li.appendChild(fila);
+    });
+
+    var dias = document.createElement("div");
+    dias.className = "dias";
+    dias.setAttribute("role", "group");
+    dias.setAttribute("aria-label", "¿Qué día?");
     [1, 2, 3, 4, 5, 6, 7].forEach(function (d) {
-      var n = votacion.votosDia[d] || 0;
+      var c = votosDia[d] || 0;
       var b = document.createElement("button");
       b.type = "button";
       b.className = "dia";
-      b.textContent = DIAS[d].charAt(0).toUpperCase() + DIAS[d].slice(1, 3) + " · " + n;
-      b.setAttribute("aria-label", "Votar el " + DIAS[d] + ", lleva " + n + (n === 1 ? " voto" : " votos"));
-      b.disabled = votadosDia >= personas;
+      b.textContent = DIAS[d].charAt(0).toUpperCase() + DIAS[d].slice(1, 3) + " · " + c;
+      b.setAttribute("aria-pressed", enc.votosDia.tu === d ? "true" : "false");
+      b.setAttribute("aria-label", "Votar el " + DIAS[d] + ", lleva " + c + (c === 1 ? " voto" : " votos"));
       b.addEventListener("click", function () {
-        votacion.votosDia[d] = n + 1;
+        enc.votosDia.tu = d;
         registrar("cta_click", { cta: "votar_dia" });
-        pintarVotacion();
+        pintarChat();
       });
       dias.appendChild(b);
     });
+    li.appendChild(dias);
 
-    var idGanador = ganador(votacion.votosPlan, votacion.candidatos);
-    var diaGanador = ganador(votacion.votosDia, [1, 2, 3, 4, 5, 6, 7]);
-    var resultado = document.getElementById("votacion-resultado");
-    resultado.innerHTML = "";
-    if (!idGanador || !diaGanador) {
-      resultado.innerHTML = '<p class="nota">Cuando haya al menos un voto al plan y otro al día, aquí veréis el ganador y lo que paga cada uno.</p>';
+    var resultado = document.createElement("div");
+    li.appendChild(resultado);
+    if (!enc.votosPlan.tu || !enc.votosDia.tu) {
+      resultado.innerHTML = '<p class="nota">Vota tu plan y tu día para ver el resultado.</p>';
       return;
     }
-    diaGanador = Number(diaGanador);
+    var idGanador = ganador(votosPlan, enc.candidatos);
+    var diaGanador = Number(ganador(votosDia, [1, 2, 3, 4, 5, 6, 7]));
     var base = planPorId(idGanador);
-    var diaAntes = estado.dia;
-    estado.dia = diaGanador;
+    var diaAntes = estado.dia, personasAntes = estado.personas;
+    estado.dia = diaGanador; estado.personas = n;
     var p = resolver(base);
-    estado.dia = diaAntes;
+    estado.dia = diaAntes; estado.personas = personasAntes;
     var titulo = document.createElement("p");
-    titulo.innerHTML = "<strong>Va ganando:</strong> <span></span>";
+    titulo.innerHTML = "<strong></strong> <span></span>";
+    titulo.querySelector("strong").textContent = votaron >= n ? "Gana:" : "Va ganando:";
     titulo.querySelector("span").textContent = base.nombre + ", el " + DIAS[diaGanador] + ".";
     resultado.appendChild(titulo);
     if (!p) {
       var aviso = document.createElement("p");
       aviso.className = "nota";
-      aviso.textContent = "Este plan no está disponible el " + DIAS[diaGanador] + " (" + diasTexto(base).toLowerCase() + "). Votad otro día.";
+      aviso.textContent = "Este plan no está disponible el " + DIAS[diaGanador] + " (" + diasTexto(base).toLowerCase() + "). Cambiad el día.";
       resultado.appendChild(aviso);
       return;
     }
-    var total = p.precio * personas;
+    var total = p.precio * n;
     var reparto = document.createElement("div");
     reparto.innerHTML =
-      "<p>Total para " + personas + (personas === 1 ? " persona" : " personas") + ": <strong>" + (total ? (p.desde ? "desde " : "") + euros(total) : (p.etiqueta || "Gratis")) + "</strong></p>" +
-      (total ? '<p>Cada uno paga <span class="cuota">' + euros(total / personas) + "</span></p>" : "") +
+      "<p>Total para " + n + " personas: <strong>" + (total ? (p.desde ? "desde " : "") + euros(total) : (p.etiqueta || "Gratis")) + "</strong></p>" +
+      (total ? '<p>Cada uno paga <span class="cuota">' + euros(total / n) + "</span></p>" : "") +
       '<button class="boton ancho" type="button">' + (total ? "Dividir el pago y cerrar plan" : "Cerrar plan") + "</button>";
     reparto.querySelector("button").addEventListener("click", function () {
       estado.dia = diaGanador;
       document.getElementById("dia").value = String(diaGanador);
-      cerrar(p, personas, total);
+      grupo.mensajes.push({ quien: "sistema", texto: "Plan cerrado: " + base.nombre + ", el " + DIAS[diaGanador] + (total ? ". Cada uno paga " + euros(total / n) + "." : ".") });
+      pintarChat();
+      ir("planes", false);
+      cerrar(p, n, total);
     });
     resultado.appendChild(reparto);
   }
-  document.getElementById("reiniciar-votacion").addEventListener("click", function () {
-    votacion.votosPlan = {};
-    votacion.votosDia = {};
-    registrar("cta_click", { cta: "reiniciar_votacion" });
+
+  function anadirAlGrupo(ids) {
+    var nuevos = ids.filter(function (id) { return grupo.miembros.indexOf(id) < 0; });
+    if (!nuevos.length) return;
+    var esNuevo = grupo.miembros.length === 0;
+    grupo.miembros = grupo.miembros.concat(nuevos);
+    registrar(esNuevo ? "grupo_creado" : "cta_click", esNuevo ? { miembros: grupo.miembros.length } : { cta: "anadir_persona" });
+    grupo.mensajes.push({ quien: "sistema", texto: (esNuevo ? "Has creado el grupo con " : "Has añadido a ") + listaNombres(nuevos) });
+    pintarChat();
+    nuevos.forEach(function (id, i) {
+      setTimeout(function () { decir(id, i === 0 ? "¡Hola! ¿Qué plan hacemos? 😄" : "¡Buenas! Me uno 🙌"); }, 900 + i * 900);
+      if (grupo.encuesta) simularVoto(id, grupo.miembros.indexOf(id));
+    });
     pintarVotacion();
+    if (grupo.pendiente) { grupo.pendiente = false; setTimeout(enviarEncuesta, 300); }
+  }
+
+  document.getElementById("chat-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var campo = document.getElementById("chat-texto");
+    var texto = campo.value.trim();
+    if (!texto) return;
+    campo.value = "";
+    registrar("cta_click", { cta: "chat_enviar" });
+    decir("tu", texto);
+    var quien = grupo.miembros[Math.floor(Math.random() * grupo.miembros.length)];
+    setTimeout(function () { decir(quien, RESPUESTAS[Math.floor(Math.random() * RESPUESTAS.length)]); }, 1200);
   });
 
   function cerrar(p, personas, total) {
@@ -909,16 +1081,19 @@
     });
   });
 
-  // ---------- Conocer gente: «Conectar» (H1: grupos hechos) ----------
+  // ---------- Conocer gente: «Conectar» (H1: grupos hechos) → abre el chat ----------
   document.getElementById("form-conectar").addEventListener("submit", function (e) {
     e.preventDefault();
     var marcados = Array.prototype.map.call(this.querySelectorAll("input:checked"), function (i) { return i.value; });
     var error = document.getElementById("error-conectar"), ok = document.getElementById("ok-conectar");
     if (!marcados.length) { error.hidden = false; ok.hidden = true; return; }
     error.hidden = true;
-    registrar("grupo_creado", { miembros: marcados.length });
     ok.hidden = false;
-    ok.innerHTML = "<strong>¡Grupo creado!</strong> Te avisaremos cuando acepten. (Simulado en el prototipo.)";
+    ok.innerHTML = "<strong>¡Grupo creado!</strong> Tenéis el chat aquí debajo.";
+    anadirAlGrupo(marcados);
+    var chat = document.getElementById("chat");
+    chat.scrollIntoView({ behavior: "smooth", block: "start" });
+    chat.focus({ preventScroll: true });
   });
 
   registrar("visita");
