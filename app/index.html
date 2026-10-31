@@ -132,6 +132,15 @@
   .reparto { background: var(--lima); border: 2px solid var(--tinta); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
   .reparto .cuota { font-size: 24px; font-weight: 800; }
   .subt { margin: 6px 0 0; font-size: 15px; font-weight: 600; }
+  /* Opiniones en forma de conversación */
+  .conversacion { list-style: none; margin: 0; padding: 14px 12px; display: grid; gap: 12px; background: #fff; border: 2px solid var(--tinta); border-radius: var(--radio); }
+  .burbuja { display: flex; align-items: flex-end; gap: 8px; max-width: 88%; }
+  .burbuja.derecha { flex-direction: row-reverse; justify-self: end; }
+  .burbuja .avatar { width: 36px; height: 36px; font-size: 14px; }
+  .burbuja figure { margin: 0; background: var(--tarjeta); border: 2px solid var(--tinta); border-radius: 18px 18px 18px 4px; padding: 8px 12px; }
+  .burbuja.derecha figure { background: var(--lima); border-radius: 18px 18px 4px 18px; }
+  .burbuja figcaption { font-size: 12px; font-weight: 600; color: var(--suave); }
+  .burbuja blockquote { margin: 0; font-weight: 600; }
   /* Chat del grupo */
   .chat { display: grid; gap: 10px; }
   .anadir { display: grid; gap: 6px; }
@@ -248,15 +257,18 @@
 
       <div>
         <h3>Opiniones de nuestros PLANNERS</h3>
-        <ul class="lista">
-          <li class="tarjeta">
-            <figure class="opinion"><blockquote>«He hecho amigos para toda la vida»</blockquote><figcaption class="nota">Opinión de ejemplo</figcaption></figure>
+        <ul class="conversacion">
+          <li class="burbuja">
+            <span class="avatar" aria-hidden="true">H</span>
+            <figure><figcaption>Hugo</figcaption><blockquote>He hecho amigos para toda la vida</blockquote></figure>
           </li>
-          <li class="tarjeta">
-            <figure class="opinion"><blockquote>«Salir sin dinero ya no es un problema»</blockquote><figcaption class="nota">Opinión de ejemplo</figcaption></figure>
+          <li class="burbuja derecha">
+            <span class="avatar" aria-hidden="true">L</span>
+            <figure><figcaption>Luis</figcaption><blockquote>Salir sin dinero ya no es un problema</blockquote></figure>
           </li>
-          <li class="tarjeta">
-            <figure class="opinion"><blockquote>«Llegué a Madrid sin conocer a nadie y el primer finde ya tenía plan»</blockquote><figcaption class="nota">Opinión de ejemplo</figcaption></figure>
+          <li class="burbuja">
+            <span class="avatar" aria-hidden="true">S</span>
+            <figure><figcaption>Sara</figcaption><blockquote>Llegué a Madrid sin conocer a nadie y el primer finde ya tenía plan</blockquote></figure>
           </li>
         </ul>
       </div>
@@ -329,7 +341,7 @@
         <p class="nota" style="margin-top:8px">En el prototipo no se cobra nada.</p>
         <div class="acciones-plan" style="justify-content:center;margin-top:12px">
           <button class="boton pequeno secundario" type="button" data-ir="mis">Ver en Mis Plannazos</button>
-          <button class="boton pequeno secundario" type="button" id="cancelar-desde-cerrado">Cancelar reserva</button>
+          <button class="boton pequeno secundario" type="button" id="cancelar-desde-cerrado">Cancelar plan</button>
         </div>
       </div>
 
@@ -537,12 +549,12 @@
         '<div class="fila"><span class="nombre"></span><span class="precio"></span></div>' +
         '<p class="nota"></p>' +
         '<div class="chips"><span class="chip sin-alcohol">Apuntado</span></div>' +
-        '<button class="boton pequeno secundario" type="button">Cancelar reserva</button>';
+        '<button class="boton pequeno secundario" type="button">Cancelar plan</button>';
       li.querySelector(".nombre").textContent = m.nombre;
       li.querySelector(".precio").textContent = m.precio;
       li.querySelector(".nota").textContent = m.detalle;
       var boton = li.querySelector("button");
-      boton.setAttribute("aria-label", "Cancelar la reserva de " + m.nombre);
+      boton.setAttribute("aria-label", "Cancelar el plan " + m.nombre);
       boton.addEventListener("click", function () { cancelarReserva(m.id); });
       lista.appendChild(li);
     });
@@ -553,7 +565,7 @@
   function cancelarReserva(id) {
     var plan = misPlanes.filter(function (m) { return m.id === id; })[0];
     if (!plan) return;
-    if (!window.confirm("¿Cancelar tu reserva de «" + plan.nombre + "»?")) return;
+    if (!window.confirm("¿Te bajas del plan «" + plan.nombre + "»?")) return;
     misPlanes = misPlanes.filter(function (m) { return m.id !== id; });
     ultimaCancelada = plan;
     registrar("cta_click", { cta: "cancelar_reserva", plan: id });
@@ -562,6 +574,7 @@
       b.textContent = "Consigue tu entrada";
       b.setAttribute("aria-pressed", "false");
     });
+    if (!document.querySelector('[data-cta="consigue_tu_entrada"][aria-pressed="true"]')) document.getElementById("aviso-entrada").hidden = true;
     if (planCerradoId === id) document.getElementById("plan-cerrado").hidden = true;
     pintarMis();
     // Aviso al chat del grupo
@@ -572,7 +585,7 @@
       setTimeout(function () { decir(quien, "¡Vaya! Otra vez será 😢"); }, 1200);
     }
     var aviso = document.getElementById("aviso-cancelada");
-    aviso.querySelector("span").textContent = "Has cancelado «" + plan.nombre + "». No se te cobra nada." + (grupo.miembros.length ? " Hemos avisado al chat del grupo." : "");
+    aviso.querySelector("span").textContent = "Te has bajado de «" + plan.nombre + "». No se te cobra nada." + (grupo.miembros.length ? " Hemos avisado al chat del grupo." : "");
     aviso.hidden = false;
   }
   document.getElementById("deshacer-cancelacion").addEventListener("click", function () {
@@ -630,7 +643,8 @@
     pinchos: { src: "img/pinchos.jpg", alt: "Plato de pinchos sobre una barra" },
     sanmiguel: { src: "img/sanmiguel.jpg", alt: "Fachada del Mercado de San Miguel con gente en la puerta" },
     tardeo: { src: "img/tardeo.jpg", alt: "Grupo de amigas brindando en una terraza" },
-    club: { src: "img/club.jpg", alt: "Gente bailando en una discoteca con luz morada" }
+    club: { src: "img/club.jpg", alt: "Gente bailando en una discoteca con luz morada" },
+    bolos: { src: "img/bolos.jpg", alt: "Bolas de colores en una bolera junto a dos amigos" }
   };
   var TODOS = [1, 2, 3, 4, 5, 6, 7];
   var PLANES = [
@@ -652,7 +666,7 @@
       detalle: "6 € por barca entre semana y 8 € el finde, hasta 4 personas por barca. De 10:00 a 14:00 y de 15:30 a 20:00." },
     { id: "cine", nombre: "Cine en los Renoir Princesa", categoria: "entretenimiento", foto: "cine", precios: { 1: 5.4, 2: 8.4, 3: 5.4, 4: 8.4, 6: 9.7, 7: 9.7 }, sinAlcohol: true, dias: [1, 2, 3, 4, 6, 7],
       detalle: "Lunes y miércoles, día del espectador: 5,40 € comprando online. Martes y jueves, 8,40 €; fines de semana, 9,70 €." },
-    { id: "bolos", nombre: "Bolos en Bowling Chamartín", categoria: "entretenimiento", foto: "cine", precio: 3.5, desde: true, sinAlcohol: true, dias: TODOS,
+    { id: "bolos", nombre: "Bolos en Bowling Chamartín", categoria: "entretenimiento", foto: "bolos", precio: 3.5, desde: true, sinAlcohol: true, dias: TODOS,
       detalle: "Pista desde 3,50 €; el precio cambia según el día y la hora." },
     { id: "tardeo", nombre: "Tardeo en Nuevos Ministerios", categoria: "entretenimiento", foto: "tardeo", precio: 12, mayores: true, dias: TODOS,
       detalle: "Música y ambiente de tarde con gente de tu edad." },
