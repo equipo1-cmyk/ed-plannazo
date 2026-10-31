@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Plannazo</title>
-<meta name="description" content="Encuentra planes baratos, conoce gente y obtén descuentos.">
+<meta name="description" content="Encuentra todo tipo de planes, conoce gente y obtén descuentos.">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#FF5757">
 <meta name="mobile-web-app-capable" content="yes">
@@ -132,6 +132,7 @@
   .reparto { background: var(--lima); border: 2px solid var(--tinta); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
   .reparto .cuota { font-size: 24px; font-weight: 800; }
   .subt { margin: 6px 0 0; font-size: 15px; font-weight: 600; }
+  .opciones-plan { display: grid; gap: 8px; background: var(--gris); border: 2px solid var(--tinta); border-radius: 12px; padding: 10px; }
   /* Opiniones en forma de conversación */
   .conversacion { list-style: none; margin: 0; padding: 14px 12px; display: grid; gap: 12px; background: #fff; border: 2px solid var(--tinta); border-radius: var(--radio); }
   .burbuja { display: flex; align-items: flex-end; gap: 8px; max-width: 88%; }
@@ -211,8 +212,8 @@
     <!-- ============ Pantalla 1 — FEED ============ -->
     <section class="pantalla" id="feed" aria-labelledby="t-feed" tabindex="-1">
       <div class="hero">
-        <h2 id="t-feed">Súmate a Plannazo y descubre nuestros descuentazos</h2>
-        <p>Encuentra planes baratos, conoce gente y obtén descuentos.</p>
+        <h2 id="t-feed">Súmate a Plannazo y establece nuevos lazos</h2>
+        <p>Encuentra todo tipo de planes, conoce gente y obtén descuentos.</p>
         <div class="acciones-hero">
           <button class="boton" type="button" id="buscar-desde-feed" data-cta="buscar_mi_plannazo_feed">Buscar mi plannazo</button>
           <button class="boton secundario" type="button" data-ir="planes" data-cta="descubre_mas">Descubre más</button>
@@ -768,13 +769,27 @@
         '<p class="nota">por persona · ' + nombreDia() + "</p>" +
         '<p class="suave detalle">' + p.detalle + "</p>" +
         '<div class="chips">' + chips + "</div>" +
-        '<div class="acciones-plan">' +
-          '<button class="boton pequeno" type="button" data-accion="candidato" aria-pressed="false"></button>' +
+        '<button class="boton pequeno" type="button" data-accion="elegir" aria-expanded="false">Elegir este plan</button>' +
+        '<div class="opciones-plan" hidden>' +
+          "<p><strong>¿Cómo quieres hacerlo?</strong></p>" +
+          '<div class="acciones-plan">' +
+            '<button class="boton pequeno secundario" type="button" data-accion="solo">Hacerlo solo</button>' +
+            '<button class="boton pequeno" type="button" data-accion="candidato" aria-pressed="false"></button>' +
+          "</div>" +
         "</div>";
+      var elegir = li.querySelector('[data-accion="elegir"]');
+      var opciones = li.querySelector(".opciones-plan");
       var boton = li.querySelector('[data-accion="candidato"]');
-      marcarCandidato(boton, p.id);
-      boton.addEventListener("click", function () { alternarCandidato(p.id); });
       boton.dataset.plan = p.id;
+      marcarCandidato(boton, p.id);
+      if (candidatos.indexOf(p.id) >= 0) { opciones.hidden = false; elegir.setAttribute("aria-expanded", "true"); }
+      elegir.addEventListener("click", function () {
+        opciones.hidden = !opciones.hidden;
+        elegir.setAttribute("aria-expanded", opciones.hidden ? "false" : "true");
+        if (!opciones.hidden) registrar("cta_click", { cta: "elegir_plan", plan: p.id });
+      });
+      li.querySelector('[data-accion="solo"]').addEventListener("click", function () { hacerSolo(p.id); });
+      boton.addEventListener("click", function () { planEnGrupo(p.id); });
       lista.appendChild(li);
     });
   }
@@ -815,7 +830,30 @@
   function marcarCandidato(boton, id) {
     var dentro = candidatos.indexOf(id) >= 0;
     boton.setAttribute("aria-pressed", dentro ? "true" : "false");
-    boton.textContent = dentro ? "En la votación ✓" : "Añadir a la votación";
+    boton.textContent = dentro ? "En la votación del grupo ✓" : (grupo.miembros.length ? "Hacerlo en grupo" : "Crear grupo");
+  }
+
+  // Opción 1: hacer el plan solo → se cierra para una persona
+  function hacerSolo(id) {
+    var base = planPorId(id);
+    var personasAntes = estado.personas;
+    estado.personas = 1;
+    var p = resolver(base);
+    estado.personas = personasAntes;
+    if (!p) return;
+    registrar("cta_click", { cta: "hacer_solo", plan: id });
+    cerrar(p, 1, p.precio);
+  }
+  // Opción 2: hacerlo en grupo → entra en la votación; si aún no hay grupo, se crea
+  function planEnGrupo(id) {
+    if (candidatos.indexOf(id) >= 0 && grupo.miembros.length) { alternarCandidato(id); return; }
+    if (candidatos.indexOf(id) < 0) alternarCandidato(id);
+    if (!grupo.miembros.length) {
+      registrar("cta_click", { cta: "crear_grupo", plan: id });
+      grupo.pendiente = true;
+      ir("gente", false);
+      document.getElementById("form-conectar").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
   function alternarCandidato(id) {
     var i = candidatos.indexOf(id);
@@ -826,6 +864,7 @@
     if (i < 0 && candidatos.length === 1) document.getElementById("votacion").scrollIntoView({ behavior: "smooth", block: "start" });
   }
   function pintarVotacion() {
+    document.querySelectorAll('[data-accion="candidato"]').forEach(function (b) { marcarCandidato(b, b.dataset.plan); });
     var caja = document.getElementById("votacion");
     caja.hidden = candidatos.length === 0;
     if (caja.hidden) return;
@@ -1051,7 +1090,7 @@
     var caja = document.getElementById("plan-cerrado");
     document.getElementById("resumen-cerrado").textContent =
       p.nombre + ", " + nombreDia() + ". " + personas + (personas === 1 ? " persona" : " personas") +
-      (p.precio == null ? ". Precio [DATO PENDIENTE]." : total ? ", " + euros(total / personas) + " cada uno." : ", gratis.");
+      (p.precio == null ? ". Precio [DATO PENDIENTE]." : total ? ", " + euros(total / personas) + (personas === 1 ? "." : " cada uno.") : ", gratis.");
     caja.hidden = false;
     caja.focus();
     apuntarme({
