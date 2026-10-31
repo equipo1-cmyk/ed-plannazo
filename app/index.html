@@ -564,8 +564,15 @@
     });
     if (planCerradoId === id) document.getElementById("plan-cerrado").hidden = true;
     pintarMis();
+    // Aviso al chat del grupo
+    if (grupo.miembros.length) {
+      grupo.mensajes.push({ quien: "sistema", texto: "Te has bajado del plan «" + plan.nombre + "». Hemos avisado al grupo." });
+      pintarChat();
+      var quien = grupo.miembros[0];
+      setTimeout(function () { decir(quien, "¡Vaya! Otra vez será 😢"); }, 1200);
+    }
     var aviso = document.getElementById("aviso-cancelada");
-    aviso.querySelector("span").textContent = "Has cancelado «" + plan.nombre + "». No se te cobra nada.";
+    aviso.querySelector("span").textContent = "Has cancelado «" + plan.nombre + "». No se te cobra nada." + (grupo.miembros.length ? " Hemos avisado al chat del grupo." : "");
     aviso.hidden = false;
   }
   document.getElementById("deshacer-cancelacion").addEventListener("click", function () {
@@ -576,6 +583,10 @@
       b.setAttribute("aria-pressed", "true");
     });
     apuntarme(ultimaCancelada);
+    if (grupo.miembros.length) {
+      grupo.mensajes.push({ quien: "sistema", texto: "Has vuelto a apuntarte a «" + ultimaCancelada.nombre + "»." });
+      pintarChat();
+    }
     ultimaCancelada = null;
     document.getElementById("aviso-cancelada").hidden = true;
   });
