@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plannazo · Pitch Demo Day</title>
+<meta name="description" content="Slides del pitch de Plannazo para el Demo Day.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FF5757">
+<link rel="icon" href="../app/icon-192.png" type="image/png">
+<style>
+  /* Identidad de la app: mismas fuentes, colores, bordes y sombras */
+  @font-face { font-family: "Poppins"; font-weight: 400; font-display: swap; src: url("../fonts/poppins-400.woff2") format("woff2"); }
+  @font-face { font-family: "Poppins"; font-weight: 600; font-display: swap; src: url("../fonts/poppins-600.woff2") format("woff2"); }
+  @font-face { font-family: "Poppins"; font-weight: 800; font-display: swap; src: url("../fonts/poppins-800.woff2") format("woff2"); }
+
+  :root {
+    --gris: #DDD7D7;
+    --rojo: #FF5757;
+    --lima: #CCFF8C;
+    --tinta: #1A1A1A;
+    --suave: #4A4444;
+    --tarjeta: #F6F3F3;
+    --radio: 28px;
+    --ancho: 1600px;
+    --alto: 900px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--tinta); font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--tinta); overflow: hidden; }
+  :focus-visible { outline: 4px solid var(--lima); outline-offset: 4px; border-radius: 8px; }
+
+  /* Escenario 16:9 escalado a la ventana */
+  .escenario { position: absolute; top: 50%; left: 50%; width: var(--ancho); height: var(--alto); transform-origin: center; }
+  .slide {
+    position: absolute; inset: 0; display: none; overflow: hidden;
+    background: var(--gris); padding: 128px 96px 80px;
+    flex-direction: column; justify-content: center; gap: 36px;
+  }
+  .slide.activa { display: flex; }
+  .slide.roja { background: var(--rojo); }
+  .slide.oscura { background: var(--tinta); color: var(--gris); }
+
+  .marca { position: absolute; top: 40px; left: 96px; height: 52px; width: auto; border-radius: 10px; }
+  .numero { position: absolute; bottom: 36px; right: 96px; font-weight: 600; font-size: 22px; color: var(--suave); }
+  .oscura .numero { color: var(--gris); }
+  .etiqueta {
+    align-self: flex-start; font-size: 22px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+    background: var(--lima); color: var(--tinta); border: 3px solid var(--tinta); border-radius: 999px; padding: 6px 20px;
+  }
+  .oscura .etiqueta { border-color: var(--lima); }
+
+  h1, h2 { margin: 0; font-weight: 800; line-height: 1.16; letter-spacing: -.015em; }
+  h1 { font-size: 104px; max-width: 1350px; }
+  h2 { font-size: 80px; max-width: 1350px; }
+  .resalta { background: var(--rojo); padding: 0 .12em; border-radius: 14px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .roja .resalta { background: var(--lima); }
+  .sub { font-size: 34px; line-height: 1.35; margin: 0; max-width: 1200px; color: var(--suave); }
+  .roja .sub, .oscura .sub { color: inherit; }
+
+  .boton {
+    display: inline-flex; align-items: center; gap: 12px; align-self: flex-start;
+    min-height: 72px; padding: 14px 36px;
+    background: var(--lima); color: var(--tinta); border: 3px solid var(--tinta); border-radius: 999px;
+    font: 600 30px/1.2 inherit; font-family: inherit; text-decoration: none; cursor: pointer;
+    box-shadow: 5px 5px 0 var(--tinta);
+  }
+  .boton:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--tinta); }
+
+  .tarjeta { background: var(--tarjeta); border: 3px solid var(--tinta); border-radius: var(--radio); box-shadow: 6px 6px 0 var(--tinta); }
+
+  /* Marco de móvil para las capturas */
+  .moviles { display: flex; gap: 36px; align-items: flex-start; }
+  .paso { display: grid; gap: 14px; justify-items: center; margin: 0; }
+  .paso figcaption { font-size: 22px; font-weight: 600; text-align: center; max-width: 260px; line-height: 1.25; }
+  .paso figcaption b { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--tinta); color: var(--lima); margin-right: 6px; font-size: 18px; }
+  .movil { width: 262px; padding: 10px; background: var(--tinta); border-radius: 40px; box-shadow: 6px 6px 0 rgba(0,0,0,.25); position: relative; }
+  .movil img { display: block; width: 100%; height: auto; aspect-ratio: 390 / 844; border-radius: 30px; }
+  .movil.grande { width: 300px; }
+
+  .fila { display: flex; align-items: center; gap: 72px; }
+  .fila > .texto { flex: 1; display: flex; flex-direction: column; gap: 32px; }
+
+  /* Gráfico de evidencia */
+  .grafico { padding: 40px 40px 20px; display: grid; gap: 34px; }
+  .barra-fila { display: grid; grid-template-columns: 420px 1fr 120px; align-items: center; gap: 24px; }
+  .barra-fila .nombre { font-size: 24px; font-weight: 600; line-height: 1.2; }
+  .barra-fila .nombre small { display: block; font-weight: 400; font-size: 18px; color: var(--suave); }
+  .pista { position: relative; height: 44px; background: #fff; border: 3px solid var(--tinta); border-radius: 12px; }
+  .relleno { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 9px 0 0 9px; }
+  .relleno.bajo { background: var(--rojo); }
+  .relleno.alto { background: var(--lima); border-right: 3px solid var(--tinta); }
+  .umbral { position: absolute; top: -12px; bottom: -12px; width: 0; border-left: 4px dashed var(--tinta); }
+  .umbral span { position: absolute; top: -30px; left: -2px; transform: translateX(-50%); font-size: 16px; font-weight: 600; white-space: nowrap; background: var(--gris); padding: 0 6px; }
+  .valor { font-size: 34px; font-weight: 800; text-align: right; }
+  .eje { display: grid; grid-template-columns: 420px 1fr 120px; gap: 24px; font-size: 16px; color: var(--suave); }
+  .eje .marcas { display: flex; justify-content: space-between; }
+  .fuente { font-size: 18px; color: var(--suave); margin: 0; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 16px; }
+  .chip { font-size: 26px; font-weight: 600; padding: 10px 24px; border: 3px solid var(--tinta); border-radius: 999px; background: var(--tarjeta); }
+
+  .qr { width: 420px; height: 420px; padding: 22px; background: #fff; }
+  .qr img { width: 100%; height: 100%; display: block; }
+  .url { font-size: 26px; font-weight: 600; word-break: break-all; }
+
+  /* Notas del orador (tecla N) */
+  .notas {
+    position: fixed; left: 0; right: 0; bottom: 0; max-height: 38vh; overflow-y: auto; z-index: 10;
+    background: var(--tarjeta); border-top: 3px solid var(--tinta); padding: 16px 24px 20px;
+    font-size: 18px; line-height: 1.5;
+  }
+  .notas h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .08em; margin: 0 0 6px; color: var(--suave); }
+  .notas p { margin: 0; white-space: pre-line; }
+  .ayuda { position: fixed; top: 10px; right: 14px; font-size: 13px; color: var(--gris); opacity: .7; z-index: 5; }
+
+  @media print {
+    @page { size: 1600px 900px; margin: 0; }
+    html, body { height: auto; overflow: visible; background: none; }
+    .escenario { position: static; transform: none !important; width: var(--ancho); height: auto; }
+    .slide { position: relative; display: flex !important; width: var(--ancho); height: var(--alto); break-after: page; page-break-after: always; }
+    .slide:last-child { break-after: auto; page-break-after: auto; }
+    .notas, .ayuda { display: none !important; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<p class="ayuda" aria-hidden="true">← → espacio · F pantalla completa · N notas</p>
+
+<main class="escenario" id="escenario" aria-live="polite">
+
+  <!-- 1. Gancho -->
+  <section class="slide roja" aria-label="Slide 1: Gancho"
+    data-notas="Os contamos algo que nos pasó: un sábado quisimos salir con poco dinero, pasamos una hora mirando Instagram y Google Maps y acabamos en el sitio de siempre.
+(pausa)
+¿A cuántos os ha pasado?">
+    <img class="marca" src="../app/img/logo.png" alt="Plannazo">
+    <span class="etiqueta">Universitarios recién llegados</span>
+    <h1>Ciudad nueva, poco dinero y <span class="resalta">poca gente con quien salir</span></h1>
+    <span class="numero"></span>
+  </section>
+
+  <!-- 2. Problema con evidencia -->
+  <section class="slide" aria-label="Slide 2: Problema"
+    data-notas="Lo que nos contaron: falta de compañía (no conocer a nadie y no saber con quién ir) y planes que no se concretan y acaban en quedarse en casa.
+Hoy lo resuelven con búsqueda por redes sociales, peer to peer, preguntar a conocidos y reseñas de Google Maps, y no les basta.">
+    <img class="marca" src="../app/img/logo.png" alt="Plannazo">
+    <span class="etiqueta">El problema · entrevistas</span>
+    <h1>No conocen a nadie y <span class="resalta">no saben con quién ir</span></h1>
+    <span class="numero"></span>
+  </section>
+
+  <!-- 3. Insight -->
+  <section class="slide oscura" aria-label="Slide 3: Insight"
+    data-notas="Nuestro insight: aunque encuentran ideas de sobra en TikTok, Instagram o Google Maps, un plan solo se hace realidad si hay alguien con quien ir.
+Cuanto más buscan solos, más se bloquean y más tiempo pierden, porque lo que les falta es compañía y no información.">
+    <img class="marca" src="../app/img/logo.png" alt="Plannazo">
+    <span class="etiqueta">Insight</span>
+    <h1>Ideas les sobran. <span class="resalta" style="color:var(--tinta)">Les falta con quién ir.</span></h1>
+    <p class="sub">TikTok, Instagram y Google Maps dan información, no compañía.</p>
+    <span class="numero"></span>
+  </section>
+
+  <!-- 4. Solución + demo -->
+  <section class="slide" aria-label="Slide 4: Solución y demo en vivo"
+    data-notas="Plannazo: conecta con gente nueva, descubre nuevos planes y obtén descuentos. Os lo enseñamos en directo.
+(DEMO: Buscar mi plannazo → 15 € y somos 4 → elegir plan → Crear grupo → votar en el chat → dividir el pago)">
+    <img class="marca" src="../app/img/logo.png" alt="Plannazo">
+    <div class="fila">
+      <div class="texto">
+        <span class="etiqueta">La solución</span>
+        <h2>Plannazo · <span class="resalta">demo en vivo</span></h2>
+        <p class="sub">Dinos cuánto tienes y cuántos sois: nosotros te damos el plannazo.</p>
+        <a class="boton" href="https://equipo1-cmyk.github.io/ed-plannazo/app/?prueba=1" target="_blank" rel="noopener">Demo en vivo ↗</a>
+      </div>
+      <div class="moviles">
+        <figure class="paso">
+          <div class="movil"><img src="img/01-inicio.jpg" alt="Inicio de la app: «Súmate a Plannazo y establece nuevos lazos» y el botón Buscar mi plannazo" width="390" height="844"></div>
+          <figcaption><b>1</b>Abres la app</figcaption>
+        </figure>
+        <figure class="paso">
+          <div class="movil"><img src="img/02-buscador.jpg" alt="Buscador con 15 € por persona, 4 personas y sábado" width="390" height="844"></div>
+          <figcaption><b>2</b>15 € y somos 4</figcaption>
+        </figure>
+        <figure class="paso">
+          <div class="movil"><img src="img/03-elegir-plan.jpg" alt="Plan Brunch a 10 € con las opciones Hacerlo solo o Crear grupo" width="390" height="844"></div>
+          <figcaption><b>3</b>Solo o en grupo</figcaption>
+        </figure>
+      </div>
+    </div>
+    <span class="numero"></span>
+  </section>
+
+  <!-- 4b. El valor -->
+  <section class="slide roja" aria-label="Slide 5: El valor"
+    data-notas="Aquí está el valor: cada uno vota el plan y el día desde su móvil, en el chat del grupo. La app dice qué gana y cuánto paga cada uno, y el plan queda cerrado.
+De «a ver si quedamos» a un plan real en un par de minutos.">
+    <img class="marca" src="../app/img/logo.png" alt="Plannazo">
+    <div class="fila">
+      <div class="texto">
+        <span class="etiqueta">El valor</span>
+        <h2>El grupo vota y <span class="resalta">el plan se cierra</span></h2>
+        <p class="sub">Cada uno vota desde su móvil. La app reparte el pago.</p>
+      </div>
+      <div class="moviles">
+        <figure class="paso">
+          <div class="movil grande"><img src="img/04-votacion-grupo.jpg" alt="Votación en el chat del grupo: gana Cine el sábado, cada uno paga 9,70 €" width="390" height="844"></div>
+          <figcaption><b>4</b>Votación en el chat</figcaption>
+        </figure>
+        <figure class="paso">
+          <div class="movil grande"><img src="img/05-plan-cerrado.jpg" alt="Pantalla de plan cerrado: Cine el sábado, 4 personas, 9,70 € cada uno" width="390" height="844"></div>
+          <figcaption><b>5</b>¡Plan cerrado!</figcaption>
+        </figure>
+      </div>
+    </div>
+    <span class="numero"></span>
+  </section>
+
+  <!-- 5. Evidencia de validación -->
+  <section class="slide" aria-label="Slide 6: Lo que nos dicen los datos"
+    data-notas="Encuesta (n = 12, datos de práctica).
+H1: con el criterio de pago, solo 1 de 12 (8,3 %) daría un 4 o un 5. Eso está muy lejos del 50 %, y el intervalo llega como mucho al 35 %. Ojo: con intención de uso sería un 66,7 %, pero el intervalo (39–86 %) también incluye el 50 %.
+H2: la web no la mide, pero la tabla da pistas. Nadie puntúa por debajo de 3 su satisfacción con lo que usa (7/12 dan 4 o 5). Aun así, 10/12 ven Plannazo diferente (4 o 5).
+En el test con usuarios vimos 2 problemas de uso; los más graves los hemos corregido en esta versión.
+H1 · Les convence la propuesta «Conectar: conecta con gente nueva, descubre nuevos planes, obtén descuentos» → no concluyente.
+H2 · Lo que usan hoy no les basta (redes sociales, peer to peer, preguntar a conocidos, reseñas de Google Maps) → no concluyente.">
+    <img class="marca" src="../app/img/logo.png" alt="Plannazo">
+    <span class="etiqueta">Lo que nos dicen los datos</span>
+    <h2 style="font-size:68px;max-width:none">Gusta gratis, pero <span class="resalta">casi nadie pagaría</span></h2>
+    <div class="tarjeta grafico" role="img" aria-label="Gráfico de barras. Pagaría la versión Plus: 8,3 %, umbral 50 %. Usaría la app: 66,7 %, umbral 50 %. Insatisfechos con lo que usan hoy: 0 %, umbral 35 %.">
+      <div class="barra-fila">
+        <span class="nombre">H1 · Pagaría la versión Plus<small>Responde 4 o 5 · 1 de 12</small></span>
+        <div class="pista"><div class="relleno bajo" style="width:8.3%"></div><div class="umbral" style="left:50%"><span>Umbral 50 %</span></div></div>
+        <span class="valor">8,3 %</span>
+      </div>
+      <div class="barra-fila">
+        <span class="nombre">H1 · Usaría la app gratis<small>Responde 4 o 5 · 8 de 12</small></span>
+        <div class="pista"><div class="relleno alto" style="width:66.7%"></div><div class="umbral" style="left:50%"><span>Umbral 50 %</span></div></div>
+        <span class="valor">66,7 %</span>
+      </div>
+      <div class="barra-fila">
+        <span class="nombre">H2 · Insatisfechos con lo que usan hoy<small>Puntúa menos de 3 · 0 de 12</small></span>
+        <div class="pista"><div class="relleno bajo" style="width:0"></div><div class="umbral" style="left:35%"><span>Umbral 35 %</span></div></div>
+        <span class="valor">0 %</span>
+      </div>
+      <div class="eje" aria-hidden="true"><span></span><span class="marcas"><span>0 %</span><span>25 %</span><span>50 %</span><span>75 %</span><span>100 %</span></span><span></span></div>
+    </div>
+    <p class="fuente">n = 12 · Fuente: encuesta de validación del equipo (octubre 2026) · Datos de práctica de clase, no representativos.</p>
+    <span class="numero"></span>
+  </section>
+
+  <!-- 6. Modelo de negocio -->
+  <section class="slide" aria-label="Slide 7: Modelo de negocio"
+    data-notas="Cómo ganamos dinero: app gratis para el estudiante, por su presupuesto ajustado; publicidad de locales, con planes patrocinados y destacados en el buscador; y anuncios segmentados por zona, tipo de plan y presupuesto.">
+    <img class="marca" src="../app/img/logo.png" alt="Plannazo">
+    <span class="etiqueta">Modelo de negocio</span>
+    <h1>Gratis para el estudiante. <span class="resalta">Pagan los locales.</span></h1>
+    <div class="chips">
+      <span class="chip">Planes patrocinados</span>
+      <span class="chip">Destacados en el buscador</span>
+      <span class="chip">Anuncios por zona, tipo y presupuesto</span>
+    </div>
+    <span class="numero"></span>
+  </section>
+
+  <!-- 7. Decisión y siguiente experimento -->
+  <section class="slide oscura" aria-label="Slide 8: Decisión"
+    data-notas="Pivotamos. No establecemos una versión de pago: la app será gratuita. Y cambiamos «precios asequibles» por precios fijos que elige el propio cliente según lo que puede gastar.
+Por mucho que las redes les basten, cuando conozcan la app e interactúen con ella cambiarán de opinión.">
+    <img class="marca" src="../app/img/logo.png" alt="Plannazo">
+    <span class="etiqueta">Decisión</span>
+    <h1 style="font-size:180px"><span class="resalta" style="color:var(--tinta)">Pivotamos</span></h1>
+    <p class="sub">Sin versión de pago: gratis para siempre y con precios fijos que eliges tú.</p>
+    <span class="numero"></span>
+  </section>
+
+  <!-- 8. Petición -->
+  <section class="slide roja" aria-label="Slide 9: Petición"
+    data-notas="Probad Plannazo ahora: escanead el QR.
+Súmate a Plannazo y establece nuevos lazos.">
+    <img class="marca" src="../app/img/logo.png" alt="Plannazo">
+    <div class="fila">
+      <div class="texto">
+        <h1>Escanead el QR <span class="resalta">y probadlo</span></h1>
+        <p class="sub" style="font-weight:600;font-size:40px">Súmate a Plannazo y establece nuevos lazos.</p>
+        <p class="url">equipo1-cmyk.github.io/ed-plannazo/app/</p>
+      </div>
+      <div class="tarjeta qr"><img src="img/qr.svg" alt="Código QR que abre https://equipo1-cmyk.github.io/ed-plannazo/app/"></div>
+    </div>
+    <span class="numero"></span>
+  </section>
+</main>
+
+<aside class="notas" id="notas" hidden aria-label="Notas del orador">
+  <h2>Notas del orador · <span id="notas-num"></span></h2>
+  <p id="notas-texto"></p>
+</aside>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+    var escenario = document.getElementById("escenario");
+    var notas = document.getElementById("notas");
+    var actual = 0;
+
+    slides.forEach(function (s, i) { s.querySelector(".numero").textContent = (i + 1) + " / " + slides.length; });
+
+    function escalar() {
+      var reservado = notas.hidden ? 0 : notas.offsetHeight;
+      var s = Math.min(window.innerWidth / 1600, (window.innerHeight - reservado) / 900);
+      escenario.style.transform = "translate(-50%, calc(-50% - " + reservado / 2 + "px)) scale(" + s + ")";
+    }
+    function mostrar(i) {
+      actual = Math.max(0, Math.min(slides.length - 1, i));
+      slides.forEach(function (s, j) { s.classList.toggle("activa", j === actual); s.setAttribute("aria-hidden", j === actual ? "false" : "true"); });
+      document.getElementById("notas-num").textContent = "slide " + (actual + 1);
+      document.getElementById("notas-texto").textContent = slides[actual].getAttribute("data-notas") || "";
+      if (location.hash !== "#" + (actual + 1)) history.replaceState(null, "", "#" + (actual + 1));
+      escalar();
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var k = e.key;
+      if (k === "ArrowRight" || k === "ArrowDown" || k === "PageDown" || k === " ") { e.preventDefault(); mostrar(actual + 1); }
+      else if (k === "ArrowLeft" || k === "ArrowUp" || k === "PageUp") { e.preventDefault(); mostrar(actual - 1); }
+      else if (k === "Home") mostrar(0);
+      else if (k === "End") mostrar(slides.length - 1);
+      else if (k === "n" || k === "N") { notas.hidden = !notas.hidden; escalar(); }
+      else if (k === "f" || k === "F") {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+      }
+    });
+    window.addEventListener("resize", escalar);
+    window.addEventListener("hashchange", function () { mostrar(parseInt(location.hash.slice(1), 10) - 1 || 0); });
+
+    mostrar(parseInt(location.hash.slice(1), 10) - 1 || 0);
+  })();
+</script>
+</body>
+</html>
